@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Room, FileItem, Folder } from '../types';
+import { Room, FileItem } from '../types';
 
 // Get all rooms for a user
 export const getRoomsForUser = async (userId: string): Promise<Room[]> => {
@@ -7,8 +7,7 @@ export const getRoomsForUser = async (userId: string): Promise<Room[]> => {
     .from('rooms')
     .select(`
       *,
-      files (*),
-      folders (*)
+      files (*)
     `)
     .eq('created_by', userId)
     .order('created_at', { ascending: false });
@@ -29,30 +28,18 @@ export const getRoomsForUser = async (userId: string): Promise<Room[]> => {
       type: file.type,
       size: file.size,
       url: file.url,
-      uploadedAt: new Date(file.uploaded_at),
-      folderId: file.folder_id
-    })),
-    folders: room.folders.map((folder: any) => ({
-      id: folder.id,
-      roomId: folder.room_id,
-      name: folder.name,
-      parentFolderId: folder.parent_folder_id,
-      createdAt: new Date(folder.created_at),
-      createdBy: folder.created_by,
-      files: [],
-      subfolders: []
+      uploadedAt: new Date(file.uploaded_at)
     }))
   }));
 };
 
-// Get a room by key (with files and folders)
+// Get a room by key (with files)
 export const getRoomByKey = async (key: string): Promise<Room | null> => {
   const { data, error } = await supabase
     .from('rooms')
     .select(`
       *,
-      files (*),
-      folders (*)
+      files (*)
     `)
     .eq('key', key)
     .maybeSingle();
@@ -65,74 +52,20 @@ export const getRoomByKey = async (key: string): Promise<Room | null> => {
     return null; // Room not found
   }
 
-  // Build folder hierarchy
-  const folderMap = new Map<string, Folder>();
-  const rootFolders: Folder[] = [];
-
-  // First pass: create all folder objects
-  data.folders.forEach((folderData: any) => {
-    const folder: Folder = {
-      id: folderData.id,
-      roomId: folderData.room_id,
-      name: folderData.name,
-      parentFolderId: folderData.parent_folder_id,
-      createdAt: new Date(folderData.created_at),
-      createdBy: folderData.created_by,
-      files: [],
-      subfolders: []
-    };
-    folderMap.set(folder.id, folder);
-  });
-
-  // Organize files by folder
-  const rootFiles: FileItem[] = [];
-  data.files.forEach((fileData: any) => {
-    const file: FileItem = {
-      id: fileData.id,
-      name: fileData.name,
-      type: fileData.type,
-      size: fileData.size,
-      url: fileData.url,
-      uploadedAt: new Date(fileData.uploaded_at),
-      folderId: fileData.folder_id
-    };
-
-    if (file.folderId) {
-      const folder = folderMap.get(file.folderId);
-      if (folder) {
-        folder.files.push(file);
-      } else {
-        // If folder doesn't exist, put file in root
-        rootFiles.push(file);
-      }
-    } else {
-      rootFiles.push(file);
-    }
-  });
-
-  // Second pass: build folder hierarchy
-  folderMap.forEach(folder => {
-    if (folder.parentFolderId) {
-      const parent = folderMap.get(folder.parentFolderId);
-      if (parent) {
-        parent.subfolders.push(folder);
-      } else {
-        // If parent doesn't exist, put folder in root
-        rootFolders.push(folder);
-      }
-    } else {
-      rootFolders.push(folder);
-    }
-  });
-
   return {
     id: data.id,
     key: data.key,
     name: data.name,
     createdAt: new Date(data.created_at),
     createdBy: data.created_by,
-    files: rootFiles,
-    folders: rootFolders
+    files: data.files.map((file: any) => ({
+      id: file.id,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      url: file.url,
+      uploadedAt: new Date(file.uploaded_at)
+    }))
   };
 };
 
@@ -175,8 +108,7 @@ export const createRoom = async (
     name: data.name,
     createdAt: new Date(data.created_at),
     createdBy: data.created_by,
-    files: [],
-    folders: []
+    files: []
   };
 };
 
@@ -196,7 +128,7 @@ export const verifyRoomPin = async (roomKey: string, pin: string): Promise<boole
 };
 
 // Upload files to a room
-export const uploadFilesToRoom = async (roomKey: string, files: File[], folderId?: string): Promise<FileItem[]> => {
+export const uploadFilesToRoom = async (roomKey: string, files: File[]): Promise<FileItem[]> => {
   // First get the room ID
   const { data: room, error: roomError } = await supabase
     .from('rooms')
@@ -206,23 +138,6 @@ export const uploadFilesToRoom = async (roomKey: string, files: File[], folderId
 
   if (roomError || !room) {
     throw new Error('Room not found');
-  }
-
-  // If uploading to a folder, verify it exists and belongs to this room
-  if (folderId) {
-    const { data: folder, error: folderError } = await supabase
-      .from('folders')
-      .select('room_id')
-      .eq('id', folderId)
-      .single();
-
-    if (folderError || !folder) {
-      throw new Error('Folder not found');
-    }
-
-    if (folder.room_id !== room.id) {
-      throw new Error('Folder does not belong to this room');
-    }
   }
 
   const uploadedFiles: FileItem[] = [];
@@ -257,8 +172,7 @@ export const uploadFilesToRoom = async (roomKey: string, files: File[], folderId
           name: file.name,
           type: file.type,
           size: file.size,
-          url: publicUrl,
-          folder_id: folderId
+          url: publicUrl
         })
         .select()
         .single();
@@ -275,8 +189,7 @@ export const uploadFilesToRoom = async (roomKey: string, files: File[], folderId
         type: fileData.type,
         size: fileData.size,
         url: fileData.url,
-        uploadedAt: new Date(fileData.uploaded_at),
-        folderId: fileData.folder_id
+        uploadedAt: new Date(fileData.uploaded_at)
       });
     } catch (error) {
       console.error(`Error uploading file ${file.name}:`, error);

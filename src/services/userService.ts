@@ -1,15 +1,14 @@
 import { supabase } from '../lib/supabase';
-import { UserProfile, Room, FileItem } from '../types';
+import { UserProfile, Room } from '../types';
 
 // Get user profile with rooms and files
 export const getUserProfile = async (userId: string): Promise<UserProfile> => {
-  // Get user's rooms with files and folders
+  // Get user's rooms with files
   const { data: rooms, error: roomsError } = await supabase
     .from('rooms')
     .select(`
       *,
-      files (*),
-      folders (*)
+      files (*)
     `)
     .eq('created_by', userId)
     .order('created_at', { ascending: false });
@@ -35,19 +34,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile> => {
       type: file.type,
       size: file.size,
       url: file.url,
-      uploadedAt: new Date(file.uploaded_at),
-      folderId: file.folder_id
-    }));
-
-    const roomFolders = room.folders.map((folder: any) => ({
-      id: folder.id,
-      roomId: folder.room_id,
-      name: folder.name,
-      parentFolderId: folder.parent_folder_id,
-      createdAt: new Date(folder.created_at),
-      createdBy: folder.created_by,
-      files: [],
-      subfolders: []
+      uploadedAt: new Date(file.uploaded_at)
     }));
 
     totalFiles += roomFiles.length;
@@ -59,8 +46,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile> => {
       name: room.name,
       createdAt: new Date(room.created_at),
       createdBy: room.created_by,
-      files: roomFiles,
-      folders: roomFolders
+      files: roomFiles
     };
   });
 
@@ -97,7 +83,7 @@ export const deleteUserAccount = async (): Promise<void> => {
     }
   }
 
-  // Delete user account (this will cascade delete rooms, folders, and files due to foreign key constraints)
+  // Delete user account (this will cascade delete rooms and files due to foreign key constraints)
   const { error } = await supabase.auth.admin.deleteUser(
     (await supabase.auth.getUser()).data.user?.id!
   );
@@ -132,7 +118,7 @@ export const deleteRoom = async (roomId: string): Promise<void> => {
       .remove(filePaths);
   }
 
-  // Delete room (this will cascade delete folders and files due to foreign key constraints)
+  // Delete room (this will cascade delete files due to foreign key constraints)
   const { error } = await supabase
     .from('rooms')
     .delete()

@@ -11,9 +11,7 @@ import {
   Download, 
   ExternalLink,
   AlertTriangle,
-  HardDrive,
-  Calendar,
-  Users
+  HardDrive
 } from 'lucide-react';
 import { getUserProfile, deleteRoom, deleteUserFile, deleteUserAccount } from '../services/userService';
 import { UserProfile } from '../types';

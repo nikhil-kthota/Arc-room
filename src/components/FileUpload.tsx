@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, FileIcon, Plus, FolderIcon } from 'lucide-react';
+import { Upload, X, FileIcon } from 'lucide-react';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
 import { cn } from '../utils/cn';
 
 interface FileUploadProps {
@@ -10,25 +9,17 @@ interface FileUploadProps {
   accept?: Record<string, string[]>;
   maxFiles?: number;
   maxSize?: number;
-  currentFolderId?: string;
-  onCreateFolder?: (name: string, parentFolderId?: string) => void;
-  roomId?: string;
 }
 
 export function FileUpload({ 
   onUpload, 
   accept, 
   maxFiles = 10, 
-  maxSize = 10485760, // 10MB
-  currentFolderId,
-  onCreateFolder,
-  roomId
+  maxSize = 10485760 // 10MB
 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setError(null);
@@ -86,75 +77,8 @@ export function FileUpload({
     }
   };
 
-  const handleCreateFolder = () => {
-    if (newFolderName.trim() && onCreateFolder) {
-      onCreateFolder(newFolderName.trim(), currentFolderId);
-      setNewFolderName('');
-      setShowCreateFolder(false);
-    }
-  };
-
   return (
     <div className="w-full">
-      {/* Create Folder Option */}
-      {onCreateFolder && (
-        <div className="mb-4">
-          {!showCreateFolder ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCreateFolder(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Create Folder
-            </Button>
-          ) : (
-            <div className="flex gap-2">
-              <Input
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Folder name"
-                className="text-sm"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleCreateFolder();
-                  }
-                }}
-                autoFocus
-              />
-              <Button
-                size="sm"
-                onClick={handleCreateFolder}
-                disabled={!newFolderName.trim()}
-              >
-                Create
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setShowCreateFolder(false);
-                  setNewFolderName('');
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Current Folder Indicator */}
-      {currentFolderId && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <div className="flex items-center gap-2 text-blue-700">
-            <FolderIcon className="w-4 h-4" />
-            <span className="text-sm font-medium">Uploading to selected folder</span>
-          </div>
-        </div>
-      )}
-
       <div
         {...getRootProps()}
         className={cn(

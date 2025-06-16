@@ -5,7 +5,6 @@ export interface Room {
   createdAt: Date;
   createdBy: string;
   files: FileItem[];
-  folders: Folder[];
 }
 
 export interface FileItem {
@@ -15,18 +14,6 @@ export interface FileItem {
   size: number;
   url: string;
   uploadedAt: Date;
-  folderId?: string;
-}
-
-export interface Folder {
-  id: string;
-  roomId: string;
-  name: string;
-  parentFolderId?: string;
-  createdAt: Date;
-  createdBy: string;
-  files: FileItem[];
-  subfolders: Folder[];
 }
 
 export interface RoomPin {

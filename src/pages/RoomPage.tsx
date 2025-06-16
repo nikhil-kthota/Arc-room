@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileUpload } from '../components/FileUpload';
-import { FolderView } from '../components/FolderView';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/Input';
 import { getRoomByKey, verifyRoomPin, uploadFilesToRoom, deleteFileFromRoom } from '../services/roomService';
-import { createFolder, deleteFolder, moveFilesToFolder } from '../services/folderService';
-import { Room, FileItem, Folder } from '../types';
-import { FileIcon, FolderIcon, Link as LinkIcon, Lock, Upload, LogOut, AlertTriangle, User } from 'lucide-react';
+import { Room, FileItem } from '../types';
+import { FileIcon, FolderIcon, Link as LinkIcon, Lock, Upload, LogOut, AlertTriangle, User, Download, ExternalLink, Trash2 } from 'lucide-react';
 import { FileViewer } from '../components/FileViewer';
 
 export function RoomPage() {
@@ -23,13 +21,11 @@ export function RoomPage() {
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [shareUrl, setShareUrl] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(undefined);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    type: 'file' | 'folder';
+    type: 'file';
     id: string;
     name: string;
   } | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -120,10 +116,10 @@ export function RoomPage() {
     try {
       setError(null);
       
-      const newFiles = await uploadFilesToRoom(roomKey, files, currentFolderId);
+      const newFiles = await uploadFilesToRoom(roomKey, files);
       
       if (room) {
-        // Refresh room data to get updated structure
+        // Refresh room data to get updated files
         const updatedRoom = await getRoomByKey(roomKey);
         if (updatedRoom) {
           setRoom(updatedRoom);
@@ -131,7 +127,6 @@ export function RoomPage() {
       }
       
       setUploadSuccess(true);
-      setCurrentFolderId(undefined); // Reset folder selection
       
       // Hide success message after 3 seconds
       setTimeout(() => {
@@ -139,42 +134,6 @@ export function RoomPage() {
       }, 3000);
     } catch (err) {
       setError((err as Error).message || 'Failed to upload files');
-    }
-  };
-
-  const handleCreateFolder = async (name: string, parentFolderId?: string) => {
-    if (!roomKey || !room) return;
-
-    try {
-      setError(null);
-      await createFolder(room.id, name, parentFolderId);
-      
-      // Refresh room data
-      const updatedRoom = await getRoomByKey(roomKey);
-      if (updatedRoom) {
-        setRoom(updatedRoom);
-      }
-    } catch (err) {
-      setError((err as Error).message || 'Failed to create folder');
-    }
-  };
-
-  const handleDeleteFolder = async (folderId: string) => {
-    try {
-      setError(null);
-      await deleteFolder(folderId);
-      
-      // Refresh room data
-      if (roomKey) {
-        const updatedRoom = await getRoomByKey(roomKey);
-        if (updatedRoom) {
-          setRoom(updatedRoom);
-        }
-      }
-      
-      setDeleteConfirmation(null);
-    } catch (err) {
-      setError((err as Error).message || 'Failed to delete folder');
     }
   };
   
@@ -201,36 +160,6 @@ export function RoomPage() {
       setError((err as Error).message || 'Failed to delete file');
     }
   };
-
-  const handleMoveFiles = async (fileIds: string[], targetFolderId?: string) => {
-    try {
-      setError(null);
-      
-      await moveFilesToFolder(fileIds, targetFolderId);
-      
-      // Refresh room data
-      if (roomKey) {
-        const updatedRoom = await getRoomByKey(roomKey);
-        if (updatedRoom) {
-          setRoom(updatedRoom);
-        }
-      }
-      
-      setSelectedFiles(new Set());
-    } catch (err) {
-      setError((err as Error).message || 'Failed to move files');
-    }
-  };
-
-  const toggleFileSelection = (fileId: string) => {
-    const newSelection = new Set(selectedFiles);
-    if (newSelection.has(fileId)) {
-      newSelection.delete(fileId);
-    } else {
-      newSelection.add(fileId);
-    }
-    setSelectedFiles(newSelection);
-  };
   
   const handleShareRoom = () => {
     const url = `${window.location.origin}/enter-room`;
@@ -245,6 +174,52 @@ export function RoomPage() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const downloadFile = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch file');
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      a.style.display = 'none';
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(url, '_blank');
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    else return (bytes / 1048576).toFixed(1) + ' MB';
+  };
+
+  const getFileTypeIcon = (file: FileItem) => {
+    const type = file.type.toLowerCase();
+    
+    if (type.includes('image')) {
+      return <FileIcon className="w-5 h-5 text-blue-500" />;
+    } else if (type.includes('pdf')) {
+      return <FileIcon className="w-5 h-5 text-red-500" />;
+    } else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('xlsx')) {
+      return <FileIcon className="w-5 h-5 text-green-500" />;
+    } else if (type.includes('presentation') || type.includes('powerpoint') || type.includes('pptx')) {
+      return <FileIcon className="w-5 h-5 text-orange-500" />;
+    } else {
+      return <FileIcon className="w-5 h-5 text-gray-500" />;
+    }
   };
 
   // Dynamic room name sizing
@@ -438,30 +413,74 @@ export function RoomPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1 order-2 lg:order-1">
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                  <h2 className="text-lg font-semibold mb-4">Files & Folders</h2>
+                  <h2 className="text-lg font-semibold mb-4">Files</h2>
                   
-                  <FolderView
-                    folders={room.folders}
-                    files={room.files}
-                    currentPath={[]}
-                    isOwner={!!isOwner}
-                    onCreateFolder={handleCreateFolder}
-                    onDeleteFolder={(folderId, folderName) => 
-                      setDeleteConfirmation({ type: 'folder', id: folderId, name: folderName })
-                    }
-                    onFileSelect={setSelectedFile}
-                    onDeleteFile={(fileId, fileName) => 
-                      setDeleteConfirmation({ type: 'file', id: fileId, name: fileName })
-                    }
-                    onUploadToFolder={(folderId) => {
-                      setCurrentFolderId(folderId);
-                      document.getElementById('file-upload-input')?.click();
-                    }}
-                    selectedFileId={selectedFile?.id}
-                    selectedFiles={selectedFiles}
-                    onToggleFileSelection={toggleFileSelection}
-                    onMoveFiles={handleMoveFiles}
-                  />
+                  {room.files.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FileIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No files yet</p>
+                      {isOwner && (
+                        <p className="text-gray-500 text-sm mt-1">
+                          Upload files to get started
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {room.files.map(file => (
+                        <div
+                          key={file.id}
+                          className={`flex items-center gap-2 p-2 hover:bg-gray-50 rounded-md cursor-pointer ${
+                            selectedFile?.id === file.id ? 'bg-primary-50 border-l-4 border-primary-500' : ''
+                          }`}
+                          onClick={() => setSelectedFile(file)}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            {getFileTypeIcon(file)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
+                              <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(file.url, '_blank');
+                              }}
+                              className="p-1 text-gray-500 hover:text-primary-600 rounded"
+                              title="Open in new tab"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadFile(file.url, file.name);
+                              }}
+                              className="p-1 text-gray-500 hover:text-primary-600 rounded"
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                            {isOwner && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteConfirmation({ type: 'file', id: file.id, name: file.name });
+                                }}
+                                className="p-1 text-gray-500 hover:text-red-600 rounded"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {isOwner && (
@@ -475,22 +494,6 @@ export function RoomPage() {
                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [],
                         'application/vnd.openxmlformats-officedocument.presentationml.presentation': [],
                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [],
-                      }}
-                      currentFolderId={currentFolderId}
-                      onCreateFolder={handleCreateFolder}
-                      roomId={room.id}
-                    />
-                    {/* Hidden file input for folder upload */}
-                    <input
-                      id="file-upload-input"
-                      type="file"
-                      multiple
-                      style={{ display: 'none' }}
-                      onChange={(e) => {
-                        if (e.target.files) {
-                          handleFileUpload(Array.from(e.target.files));
-                          setCurrentFolderId(undefined);
-                        }
                       }}
                     />
                   </div>
@@ -571,16 +574,11 @@ export function RoomPage() {
                       <AlertTriangle className="w-8 h-8 text-red-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Delete {deleteConfirmation.type === 'folder' ? 'Folder' : 'File'}
+                      Delete File
                     </h3>
                     <p className="text-gray-600 mb-4">
                       Are you sure you want to delete "{deleteConfirmation.name}"?
                     </p>
-                    {deleteConfirmation.type === 'folder' && (
-                      <p className="text-sm text-gray-500 mb-4">
-                        This will move all files and subfolders to the parent level.
-                      </p>
-                    )}
                     <p className="text-sm text-gray-500">This action cannot be undone.</p>
                   </div>
                   
@@ -593,15 +591,9 @@ export function RoomPage() {
                     </Button>
                     <Button
                       variant="danger"
-                      onClick={() => {
-                        if (deleteConfirmation.type === 'folder') {
-                          handleDeleteFolder(deleteConfirmation.id);
-                        } else {
-                          handleDeleteFile(deleteConfirmation.id);
-                        }
-                      }}
+                      onClick={() => handleDeleteFile(deleteConfirmation.id)}
                     >
-                      Delete {deleteConfirmation.type === 'folder' ? 'Folder' : 'File'}
+                      Delete File
                     </Button>
                   </div>
                 </div>
