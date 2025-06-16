@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Room - ArcRoom</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <a href="/" class="logo">
+          <span class="logo-icon"></span>
+          <span>ArcRoom</span>
+        </a>
+        
+        <div class="nav-center">
+          <h1 class="room-title">Create New Room</h1>
+        </div>
+        
+        <div class="auth-buttons" id="authButtons">
+          <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="create-room-layout">
+      <div class="container">
+        <div class="create-room-grid">
+          <!-- Room Settings Card -->
+          <div class="create-room-card">
+            <div class="card-header">
+              <div class="create-room-icon"></div>
+              <h2>Room Settings</h2>
+              <p>Configure your room details and access controls</p>
+            </div>
+
+            <form id="createRoomForm" onsubmit="handleCreateRoom(event)">
+              <div class="form-group">
+                <label for="roomName">Room Name</label>
+                <input 
+                  type="text" 
+                  id="roomName" 
+                  required 
+                  placeholder="Project Files, Team Documents, etc."
+                >
+                <p class="input-help">A descriptive name for your room</p>
+              </div>
+
+              <div class="form-group">
+                <label for="roomId">Room ID</label>
+                <input 
+                  type="text" 
+                  id="roomId" 
+                  required 
+                  placeholder="project-alpha"
+                  pattern="[a-zA-Z0-9-]+"
+                  title="Only letters, numbers, and hyphens allowed"
+                >
+                <p class="input-help">Used in the URL for accessing your room</p>
+              </div>
+
+              <div class="form-group">
+                <label for="roomPin">Room PIN (4 digits)</label>
+                <input 
+                  type="text" 
+                  id="roomPin" 
+                  required 
+                  placeholder="1234"
+                  pattern="\d{4}"
+                  maxlength="4"
+                  title="Must be exactly 4 digits"
+                >
+                <p class="input-help">4-digit PIN required to access the room</p>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary w-full">Create Room</button>
+              </div>
+            </form>
+
+            <div class="security-note">
+              <div class="security-icon"></div>
+              <div>
+                <h3>Security Note</h3>
+                <p>Anyone with both your room ID and PIN will be able to access files in this room. Choose a unique PIN and only share it with people you trust.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- File Upload Card -->
+          <div class="upload-card">
+            <div class="card-header">
+              <div class="upload-header-icon"></div>
+              <h2>Upload Files</h2>
+              <p>Add files to your room (optional)</p>
+            </div>
+
+            <div class="upload-section">
+              <div class="upload-area" id="uploadArea">
+                <input 
+                  type="file" 
+                  id="fileInput" 
+                  multiple 
+                  style="display: none"
+                  onchange="handleFileSelect(event)"
+                >
+                <div class="upload-content">
+                  <div class="upload-icon"></div>
+                  <p class="upload-text">Drag files here or click to browse</p>
+                  <p class="upload-help">Upload up to 10 files (max 10MB each)</p>
+                </div>
+              </div>
+
+              <div id="fileList" class="file-list-preview"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="create-room.js"></script>
+  </body>
+</html>

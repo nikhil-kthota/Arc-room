@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArcRoom - Secure File Storage</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <a href="/" class="logo">
+          <span class="logo-icon"></span>
+          <span>ArcRoom</span>
+        </a>
+        
+        <div class="nav-center">
+          <button class="btn btn-primary" onclick="handleCreateRoom()">Create Room</button>
+        </div>
+        
+        <div class="auth-buttons" id="authButtons">
+          <button class="btn btn-ghost" onclick="showLoginModal()">Login</button>
+          <button class="btn btn-primary" onclick="showRegisterModal()">Register</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="join-room-card">
+          <h1>Enter Room</h1>
+          <form id="joinRoomForm" onsubmit="handleJoinRoom(event)">
+            <div class="form-group">
+              <label for="roomId">Room ID</label>
+              <input type="text" id="roomId" required placeholder="Enter room ID">
+            </div>
+            <div class="form-group">
+              <label for="roomPin">Room PIN</label>
+              <input type="text" id="roomPin" required placeholder="Enter 4-digit PIN" maxlength="4" pattern="\d{4}">
+            </div>
+            <button type="submit" class="btn btn-primary w-full">Join Room</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- Auth Modals -->
+    <div class="modal" id="loginModal">
+      <div class="modal-content">
+        <h2>Log in to create rooms</h2>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" required placeholder="your.email@example.com">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" required placeholder="Your password">
+          </div>
+          <button type="submit" class="btn btn-primary w-full">Log in</button>
+        </form>
+        <p class="text-center mt-4">
+          Don't have an account? 
+          <a href="#" onclick="showRegisterModal()">Register</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="modal" id="registerModal">
+      <div class="modal-content">
+        <h2>Create an account</h2>
+        <form id="registerForm" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="registerEmail">Email</label>
+            <input type="email" id="registerEmail" required placeholder="your.email@example.com">
+          </div>
+          <div class="form-group">
+            <label for="registerPassword">Password</label>
+            <input type="password" id="registerPassword" required placeholder="Create a password">
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" required placeholder="Confirm your password">
+          </div>
+          <button type="submit" class="btn btn-primary w-full">Register</button>
+        </form>
+        <p class="text-center mt-4">
+          Already have an account? 
+          <a href="#" onclick="showLoginModal()">Log in</a>
+        </p>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

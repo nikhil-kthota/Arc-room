@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile - ArcRoom</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <a href="/" class="logo">
+          <span class="logo-icon"></span>
+          <span>ArcRoom</span>
+        </a>
+        
+        <div class="nav-center">
+          <h1 class="room-title">User Profile</h1>
+        </div>
+        
+        <div class="auth-buttons" id="authButtons">
+          <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="profile-layout">
+      <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="profile-info">
+            <div class="profile-avatar">
+              <span class="profile-icon"></span>
+            </div>
+            <div class="profile-details">
+              <h1 id="userEmail">Loading...</h1>
+              <p class="profile-subtitle">Account Information</p>
+            </div>
+          </div>
+          
+          <div class="profile-stats">
+            <div class="stat-item">
+              <span class="stat-number" id="totalRooms">0</span>
+              <span class="stat-label">Rooms</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="totalFiles">0</span>
+              <span class="stat-label">Files</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="totalStorage">0 MB</span>
+              <span class="stat-label">Storage</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+          <!-- User's Rooms -->
+          <div class="profile-section">
+            <div class="section-header">
+              <h2>My Rooms</h2>
+              <button class="btn btn-primary" onclick="window.location.href='create-room.html'">
+                <span class="icon-plus"></span>
+                Create Room
+              </button>
+            </div>
+            
+            <div id="userRooms" class="rooms-grid">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+
+          <!-- User's Files -->
+          <div class="profile-section">
+            <div class="section-header">
+              <h2>My Files</h2>
+              <div class="file-filters">
+                <select id="roomFilter" class="filter-select">
+                  <option value="">All Rooms</option>
+                </select>
+              </div>
+            </div>
+            
+            <div id="userFiles" class="files-grid">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+
+          <!-- Account Actions -->
+          <div class="profile-section danger-section">
+            <div class="section-header">
+              <h2>Account Actions</h2>
+            </div>
+            
+            <div class="danger-actions">
+              <div class="action-item">
+                <div class="action-info">
+                  <h3>Logout</h3>
+                  <p>Sign out of your account on this device</p>
+                </div>
+                <button class="btn btn-ghost" onclick="handleLogout()">
+                  <span class="icon-logout"></span>
+                  Logout
+                </button>
+              </div>
+              
+              <div class="action-item danger">
+                <div class="action-info">
+                  <h3>Delete Account</h3>
+                  <p>Permanently delete your account and all associated data</p>
+                </div>
+                <button class="btn btn-danger" onclick="showDeleteAccountModal()">
+                  <span class="icon-trash"></span>
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Delete Room Modal -->
+    <div class="modal" id="deleteRoomModal">
+      <div class="modal-content delete-modal">
+        <div class="delete-modal-header">
+          <div class="delete-icon">
+            <span class="icon-trash-large"></span>
+          </div>
+          <h2>Delete Room</h2>
+        </div>
+        
+        <div class="delete-modal-body">
+          <p class="delete-message">Are you sure you want to delete this room?</p>
+          <p class="delete-filename" id="deleteRoomName">Room Name</p>
+          <p class="delete-warning">This will permanently delete the room and all its files. This action cannot be undone.</p>
+        </div>
+        
+        <div class="delete-modal-actions">
+          <button class="btn btn-ghost" onclick="hideDeleteRoomModal()">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmDeleteRoom()">Delete Room</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete File Modal -->
+    <div class="modal" id="deleteFileModal">
+      <div class="modal-content delete-modal">
+        <div class="delete-modal-header">
+          <div class="delete-icon">
+            <span class="icon-trash-large"></span>
+          </div>
+          <h2>Delete File</h2>
+        </div>
+        
+        <div class="delete-modal-body">
+          <p class="delete-message">Are you sure you want to delete this file?</p>
+          <p class="delete-filename" id="deleteFileName">filename.pdf</p>
+          <p class="delete-warning">This action cannot be undone.</p>
+        </div>
+        
+        <div class="delete-modal-actions">
+          <button class="btn btn-ghost" onclick="hideDeleteFileModal()">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmDeleteFile()">Delete File</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal" id="deleteAccountModal">
+      <div class="modal-content delete-modal">
+        <div class="delete-modal-header">
+          <div class="delete-icon">
+            <span class="icon-trash-large"></span>
+          </div>
+          <h2>Delete Account</h2>
+        </div>
+        
+        <div class="delete-modal-body">
+          <p class="delete-message">Are you sure you want to delete your account?</p>
+          <p class="delete-warning">This will permanently delete all your rooms, files, and account data. This action cannot be undone.</p>
+          
+          <div class="form-group">
+            <label for="confirmDeleteText">Type "DELETE" to confirm:</label>
+            <input type="text" id="confirmDeleteText" placeholder="DELETE">
+          </div>
+        </div>
+        
+        <div class="delete-modal-actions">
+          <button class="btn btn-ghost" onclick="hideDeleteAccountModal()">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmDeleteAccount()">Delete Account</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="profile.js"></script>
+  </body>
+</html>
