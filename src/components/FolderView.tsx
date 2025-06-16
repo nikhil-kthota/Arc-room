@@ -10,7 +10,8 @@ import {
   ChevronRight,
   ChevronDown,
   Upload,
-  Check
+  Check,
+  Move
 } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -28,6 +29,7 @@ interface FolderViewProps {
   selectedFileId?: string;
   selectedFiles?: Set<string>;
   onToggleFileSelection?: (fileId: string) => void;
+  onMoveFiles?: (fileIds: string[], targetFolderId?: string) => void;
 }
 
 export function FolderView({
@@ -42,11 +44,13 @@ export function FolderView({
   onUploadToFolder,
   selectedFileId,
   selectedFiles = new Set(),
-  onToggleFileSelection
+  onToggleFileSelection,
+  onMoveFiles
 }: FolderViewProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [showCreateFolder, setShowCreateFolder] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
+  const [showMoveModal, setShowMoveModal] = useState(false);
 
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -112,6 +116,35 @@ export function FolderView({
     }
   };
 
+  const getAllFolders = (folderList: Folder[]): Folder[] => {
+    let allFolders: Folder[] = [];
+    
+    const collectFolders = (folders: Folder[]) => {
+      for (const folder of folders) {
+        allFolders.push(folder);
+        if (folder.subfolders.length > 0) {
+          collectFolders(folder.subfolders);
+        }
+      }
+    };
+    
+    collectFolders(folderList);
+    return allFolders;
+  };
+
+  const handleMoveSelectedFiles = () => {
+    if (selectedFiles.size > 0) {
+      setShowMoveModal(true);
+    }
+  };
+
+  const handleMoveToFolder = (targetFolderId?: string) => {
+    if (onMoveFiles && selectedFiles.size > 0) {
+      onMoveFiles(Array.from(selectedFiles), targetFolderId);
+      setShowMoveModal(false);
+    }
+  };
+
   const renderFolder = (folder: Folder, level: number = 0) => {
     const isExpanded = expandedFolders.has(folder.id);
     const paddingLeft = level * 1.5;
@@ -137,6 +170,10 @@ export function FolderView({
           
           <span className="flex-1 text-sm font-medium text-gray-700">
             {folder.name}
+          </span>
+          
+          <span className="text-xs text-gray-500">
+            {folder.files.length} files
           </span>
           
           {isOwner && (
@@ -296,6 +333,41 @@ export function FolderView({
 
   return (
     <div className="space-y-2">
+      {/* Selection actions */}
+      {selectedFiles.size > 0 && isOwner && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-blue-700 font-medium">
+              {selectedFiles.size} file{selectedFiles.size > 1 ? 's' : ''} selected
+            </span>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleMoveSelectedFiles}
+                className="flex items-center gap-2"
+              >
+                <Move className="w-4 h-4" />
+                Move to Folder
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  selectedFiles.clear();
+                  // Force re-render by calling the parent component's state update
+                  if (onToggleFileSelection) {
+                    onToggleFileSelection(''); // This will trigger a re-render
+                  }
+                }}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Root level create folder */}
       {isOwner && (
         <div className="flex items-center gap-2 mb-4">
@@ -440,6 +512,49 @@ export function FolderView({
               Create folders to organize your files
             </p>
           )}
+        </div>
+      )}
+
+      {/* Move Files Modal */}
+      {showMoveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4">Move Files</h3>
+            
+            <p className="text-gray-600 mb-4">
+              Move {selectedFiles.size} selected file{selectedFiles.size > 1 ? 's' : ''} to:
+            </p>
+            
+            <div className="space-y-2 mb-6">
+              <button
+                onClick={() => handleMoveToFolder()}
+                className="w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50 flex items-center gap-2"
+              >
+                <FolderIcon className="w-5 h-5 text-blue-500" />
+                <span>Root (No folder)</span>
+              </button>
+              
+              {getAllFolders(folders).map(folder => (
+                <button
+                  key={folder.id}
+                  onClick={() => handleMoveToFolder(folder.id)}
+                  className="w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <FolderIcon className="w-5 h-5 text-blue-500" />
+                  <span>{folder.name}</span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="ghost"
+                onClick={() => setShowMoveModal(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

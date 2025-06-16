@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/Input';
 import { getRoomByKey, verifyRoomPin, uploadFilesToRoom, deleteFileFromRoom } from '../services/roomService';
-import { createFolder, deleteFolder, moveFileToFolder } from '../services/folderService';
+import { createFolder, deleteFolder, moveFilesToFolder } from '../services/folderService';
 import { Room, FileItem, Folder } from '../types';
 import { FileIcon, FolderIcon, Link as LinkIcon, Lock, Upload, LogOut, AlertTriangle, User } from 'lucide-react';
 import { FileViewer } from '../components/FileViewer';
@@ -30,7 +30,6 @@ export function RoomPage() {
     name: string;
   } | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [showMoveModal, setShowMoveModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -132,6 +131,7 @@ export function RoomPage() {
       }
       
       setUploadSuccess(true);
+      setCurrentFolderId(undefined); // Reset folder selection
       
       // Hide success message after 3 seconds
       setTimeout(() => {
@@ -202,14 +202,11 @@ export function RoomPage() {
     }
   };
 
-  const handleMoveFiles = async (targetFolderId?: string) => {
+  const handleMoveFiles = async (fileIds: string[], targetFolderId?: string) => {
     try {
       setError(null);
       
-      // Move all selected files
-      for (const fileId of selectedFiles) {
-        await moveFileToFolder(fileId, targetFolderId);
-      }
+      await moveFilesToFolder(fileIds, targetFolderId);
       
       // Refresh room data
       if (roomKey) {
@@ -220,7 +217,6 @@ export function RoomPage() {
       }
       
       setSelectedFiles(new Set());
-      setShowMoveModal(false);
     } catch (err) {
       setError((err as Error).message || 'Failed to move files');
     }
@@ -234,22 +230,6 @@ export function RoomPage() {
       newSelection.add(fileId);
     }
     setSelectedFiles(newSelection);
-  };
-
-  const getAllFolders = (folders: Folder[]): Folder[] => {
-    let allFolders: Folder[] = [];
-    
-    const collectFolders = (folderList: Folder[]) => {
-      for (const folder of folderList) {
-        allFolders.push(folder);
-        if (folder.subfolders.length > 0) {
-          collectFolders(folder.subfolders);
-        }
-      }
-    };
-    
-    collectFolders(folders);
-    return allFolders;
   };
   
   const handleShareRoom = () => {
@@ -441,29 +421,6 @@ export function RoomPage() {
                   {room.files.length} {room.files.length === 1 ? 'file' : 'files'} • Created {new Date(room.createdAt).toLocaleDateString()}
                 </p>
               </div>
-              
-              {/* File Selection Actions */}
-              {selectedFiles.size > 0 && (
-                <div className="flex items-center gap-2 mt-4 md:mt-0">
-                  <span className="text-sm text-gray-600">
-                    {selectedFiles.size} file{selectedFiles.size > 1 ? 's' : ''} selected
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowMoveModal(true)}
-                  >
-                    Move to Folder
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedFiles(new Set())}
-                  >
-                    Clear Selection
-                  </Button>
-                </div>
-              )}
             </div>
             
             {error && (
@@ -503,6 +460,7 @@ export function RoomPage() {
                     selectedFileId={selectedFile?.id}
                     selectedFiles={selectedFiles}
                     onToggleFileSelection={toggleFileSelection}
+                    onMoveFiles={handleMoveFiles}
                   />
                 </div>
                 
@@ -604,53 +562,6 @@ export function RoomPage() {
               </div>
             )}
 
-            {/* Move Files Modal */}
-            {showMoveModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-                  <h3 className="text-lg font-semibold mb-4">Move Files</h3>
-                  
-                  <p className="text-gray-600 mb-4">
-                    Move {selectedFiles.size} selected file{selectedFiles.size > 1 ? 's' : ''} to:
-                  </p>
-                  
-                  <div className="space-y-2 max-h-64 overflow-y-auto mb-6">
-                    <button
-                      onClick={() => handleMoveFiles()}
-                      className="w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FolderIcon className="w-5 h-5 text-blue-500" />
-                        <span>Root (No folder)</span>
-                      </div>
-                    </button>
-                    
-                    {getAllFolders(room.folders).map(folder => (
-                      <button
-                        key={folder.id}
-                        onClick={() => handleMoveFiles(folder.id)}
-                        className="w-full text-left p-3 border border-gray-200 rounded-md hover:bg-gray-50"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FolderIcon className="w-5 h-5 text-blue-500" />
-                          <span>{folder.name}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <div className="flex gap-3 justify-end">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowMoveModal(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Delete Confirmation Modal */}
             {deleteConfirmation && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -665,6 +576,11 @@ export function RoomPage() {
                     <p className="text-gray-600 mb-4">
                       Are you sure you want to delete "{deleteConfirmation.name}"?
                     </p>
+                    {deleteConfirmation.type === 'folder' && (
+                      <p className="text-sm text-gray-500 mb-4">
+                        This will move all files and subfolders to the parent level.
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500">This action cannot be undone.</p>
                   </div>
                   

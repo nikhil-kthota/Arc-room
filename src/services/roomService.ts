@@ -101,6 +101,9 @@ export const getRoomByKey = async (key: string): Promise<Room | null> => {
       const folder = folderMap.get(file.folderId);
       if (folder) {
         folder.files.push(file);
+      } else {
+        // If folder doesn't exist, put file in root
+        rootFiles.push(file);
       }
     } else {
       rootFiles.push(file);
@@ -113,6 +116,9 @@ export const getRoomByKey = async (key: string): Promise<Room | null> => {
       const parent = folderMap.get(folder.parentFolderId);
       if (parent) {
         parent.subfolders.push(folder);
+      } else {
+        // If parent doesn't exist, put folder in root
+        rootFolders.push(folder);
       }
     } else {
       rootFolders.push(folder);
@@ -200,6 +206,23 @@ export const uploadFilesToRoom = async (roomKey: string, files: File[], folderId
 
   if (roomError || !room) {
     throw new Error('Room not found');
+  }
+
+  // If uploading to a folder, verify it exists and belongs to this room
+  if (folderId) {
+    const { data: folder, error: folderError } = await supabase
+      .from('folders')
+      .select('room_id')
+      .eq('id', folderId)
+      .single();
+
+    if (folderError || !folder) {
+      throw new Error('Folder not found');
+    }
+
+    if (folder.room_id !== room.id) {
+      throw new Error('Folder does not belong to this room');
+    }
   }
 
   const uploadedFiles: FileItem[] = [];
