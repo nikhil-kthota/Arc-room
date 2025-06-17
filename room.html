@@ -36,10 +36,19 @@
 
     <main class="room-layout">
       <div class="container">
+        <!-- Coming Soon Announcement -->
+        <div class="coming-soon-announcement">
+          <div class="announcement-icon"></div>
+          <div class="announcement-content">
+            <h3>🚀 Coming Soon: Folder Organization</h3>
+            <p>We're working on adding folder features to help you organize your files better. Stay tuned for updates!</p>
+          </div>
+        </div>
+
         <div class="room-grid">
           <!-- File List -->
           <aside class="file-list">
-            <h2>Files & Folders</h2>
+            <h2>Files</h2>
             <div id="filesList" class="files-container">
               <div class="loading-spinner"></div>
             </div>
@@ -86,23 +95,6 @@
       </div>
     </div>
 
-    <!-- Create Folder Modal -->
-    <div class="modal" id="createFolderModal">
-      <div class="modal-content">
-        <h2>Create Folder</h2>
-        <form onsubmit="event.preventDefault(); createFolder();">
-          <div class="form-group">
-            <label for="folderName">Folder Name</label>
-            <input type="text" id="folderName" required placeholder="Enter folder name">
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" onclick="hideCreateFolderModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Create Folder</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <!-- Delete Confirmation Modal -->
     <div class="modal" id="deleteModal">
       <div class="modal-content delete-modal">
@@ -122,29 +114,6 @@
         <div class="delete-modal-actions">
           <button class="btn btn-ghost" onclick="hideDeleteModal()">Cancel</button>
           <button class="btn btn-danger" onclick="confirmDeleteFile()">Delete File</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Folder Modal -->
-    <div class="modal" id="deleteFolderModal">
-      <div class="modal-content delete-modal">
-        <div class="delete-modal-header">
-          <div class="delete-icon">
-            <span class="icon-trash-large"></span>
-          </div>
-          <h2>Delete Folder</h2>
-        </div>
-        
-        <div class="delete-modal-body">
-          <p class="delete-message">Are you sure you want to delete this folder?</p>
-          <p class="delete-filename" id="deleteFolderName">Folder Name</p>
-          <p class="delete-warning">This will move all files in this folder to the root level. This action cannot be undone.</p>
-        </div>
-        
-        <div class="delete-modal-actions">
-          <button class="btn btn-ghost" onclick="hideDeleteFolderModal()">Cancel</button>
-          <button class="btn btn-danger" onclick="confirmDeleteFolder()">Delete Folder</button>
         </div>
       </div>
     </div>

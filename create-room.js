@@ -113,6 +113,7 @@ async function handleCreateRoom(e) {
   const roomName = document.getElementById('roomName').value;
   const roomId = document.getElementById('roomId').value.toLowerCase();
   const roomPin = document.getElementById('roomPin').value;
+  const dataAgreement = document.getElementById('dataAgreement').checked;
 
   try {
     // Validate inputs
@@ -133,6 +134,12 @@ async function handleCreateRoom(e) {
 
     if (!/^\d{4}$/.test(roomPin)) {
       alert('PIN must be exactly 4 digits');
+      return;
+    }
+
+    // Check data agreement if files are selected
+    if (selectedFiles.length > 0 && !dataAgreement) {
+      alert('Please agree to the data storage terms before uploading files');
       return;
     }
 
