@@ -24,7 +24,25 @@
         </div>
         
         <div class="auth-buttons" id="authButtons">
-          <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+          <div class="profile-icon-btn" onclick="toggleProfileDropdown()" onmouseenter="showProfileDropdownOnHover()" onmouseleave="hideProfileDropdownOnHover()">
+            <span class="icon-user"></span>
+            <div class="profile-dropdown" id="profileDropdown">
+              <div class="profile-dropdown-header">
+                <div class="profile-dropdown-email" id="userEmail">Loading...</div>
+                <div class="profile-dropdown-label">Signed in as</div>
+              </div>
+              <div class="profile-dropdown-actions">
+                <button class="btn btn-ghost" onclick="window.location.href='profile.html'">
+                  <span class="icon-eye"></span>
+                  View Profile
+                </button>
+                <button class="btn btn-ghost" onclick="handleLogout()">
+                  <span class="icon-logout"></span>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </header>

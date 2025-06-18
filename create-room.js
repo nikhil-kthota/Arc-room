@@ -18,6 +18,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     id: session.user.id,
     email: session.user.email
   };
+  
+  // Update the user email in the profile dropdown
+  updateUserEmail();
+});
+
+// Update user email in profile dropdown
+function updateUserEmail() {
+  const userEmailElement = document.getElementById('userEmail');
+  if (userEmailElement && currentUser) {
+    userEmailElement.textContent = currentUser.email;
+  }
+}
+
+// Profile dropdown functions
+function toggleProfileDropdown() {
+  const dropdown = document.getElementById('profileDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('show');
+  }
+}
+
+function showProfileDropdownOnHover() {
+  const dropdown = document.getElementById('profileDropdown');
+  if (dropdown) {
+    dropdown.classList.add('show');
+  }
+}
+
+function hideProfileDropdownOnHover() {
+  setTimeout(() => {
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown && !dropdown.matches(':hover')) {
+      dropdown.classList.remove('show');
+    }
+  }, 100);
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const profileBtn = e.target.closest('.profile-icon-btn');
+  const dropdown = document.getElementById('profileDropdown');
+  
+  if (!profileBtn && dropdown) {
+    dropdown.classList.remove('show');
+  }
 });
 
 // Error display functions that show within the form container
