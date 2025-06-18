@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { FolderPlus, Key, Pin } from 'lucide-react';
+import { FolderPlus } from 'lucide-react';
 import { createRoom } from '../services/roomService';
 
 export function CreateRoomPage() {

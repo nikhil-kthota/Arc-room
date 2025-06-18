@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { UserProfile, Room } from '../types';
+import { UserProfile, Room, FileItem } from '../types';
 
 // Get user profile with rooms and files
 export const getUserProfile = async (userId: string): Promise<UserProfile> => {
@@ -38,7 +38,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile> => {
     }));
 
     totalFiles += roomFiles.length;
-    totalStorage += roomFiles.reduce((sum, file) => sum + file.size, 0);
+    totalStorage += roomFiles.reduce((sum: number, file: FileItem) => sum + file.size, 0);
 
     return {
       id: room.id,
