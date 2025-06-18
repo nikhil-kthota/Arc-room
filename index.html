@@ -31,7 +31,41 @@
 
     <main>
       <div class="container">
-        <div class="join-room-card">
+        <!-- Hero Section with Animated Background -->
+        <div class="hero-section">
+          <div class="hero-background">
+            <div class="floating-shapes">
+              <div class="shape shape-1"></div>
+              <div class="shape shape-2"></div>
+              <div class="shape shape-3"></div>
+              <div class="shape shape-4"></div>
+              <div class="shape shape-5"></div>
+            </div>
+          </div>
+          
+          <div class="hero-content">
+            <h1 class="hero-title">
+              <span class="title-line">Secure File Storage</span>
+              <span class="title-line">Made Simple</span>
+            </h1>
+            <p class="hero-subtitle">Create secure rooms with custom keys and PIN protection to share and view files directly in your browser.</p>
+            
+            <div class="hero-actions">
+              <button class="btn btn-primary btn-hero" onclick="handleCreateRoom()">
+                <span class="btn-text">Get Started</span>
+                <span class="btn-shine"></span>
+              </button>
+              <button class="btn btn-ghost btn-hero" onclick="document.querySelector('.join-room-card').scrollIntoView({behavior: 'smooth'})">
+                <span class="btn-text">Enter Room</span>
+                <span class="btn-shine"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Join Room Card with Glass Effect -->
+        <div class="join-room-card glass-card">
+          <div class="card-glow"></div>
           <h1>Enter Room</h1>
           <form id="joinRoomForm" onsubmit="handleJoinRoom(event)">
             <div class="form-group">
@@ -42,44 +76,75 @@
               <label for="roomPin">Room PIN</label>
               <input type="text" id="roomPin" required placeholder="Enter 4-digit PIN" maxlength="4" pattern="\d{4}">
             </div>
-            <button type="submit" class="btn btn-primary w-full">Join Room</button>
+            <button type="submit" class="btn btn-primary w-full">
+              <span class="btn-text">Join Room</span>
+              <span class="btn-shine"></span>
+            </button>
           </form>
         </div>
 
-        <!-- How to Use Section -->
+        <!-- How to Use Section with Step Flow -->
         <div class="how-to-use-section">
-          <div class="section-header">
-            <h2>How to Use ArcRoom</h2>
-            <p>Get started with secure file sharing in just a few simple steps</p>
+          <div class="section-header parallax-element" data-speed="0.5">
+            <h2 class="section-title">How to Use ArcRoom</h2>
+            <p class="section-subtitle">Get started with secure file sharing in just a few simple steps</p>
           </div>
           
-          <div class="steps-grid">
-            <div class="step-card">
-              <div class="step-number">1</div>
+          <div class="steps-flow">
+            <div class="step-card step-1 floating-card" data-delay="0">
+              <div class="step-background"></div>
+              <div class="step-number">
+                <span>1</span>
+                <div class="number-glow"></div>
+              </div>
               <div class="step-content">
                 <h3>Create an Account</h3>
                 <p>Register with your email to start creating secure rooms for file storage and sharing.</p>
               </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-pulse"></div>
+              </div>
             </div>
             
-            <div class="step-card">
-              <div class="step-number">2</div>
+            <div class="step-card step-2 floating-card" data-delay="200">
+              <div class="step-background"></div>
+              <div class="step-number">
+                <span>2</span>
+                <div class="number-glow"></div>
+              </div>
               <div class="step-content">
                 <h3>Create a Room</h3>
                 <p>Set up a new room with a unique ID and 4-digit PIN. Upload files during creation or add them later.</p>
               </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-pulse"></div>
+              </div>
             </div>
             
-            <div class="step-card">
-              <div class="step-number">3</div>
+            <div class="step-card step-3 floating-card" data-delay="400">
+              <div class="step-background"></div>
+              <div class="step-number">
+                <span>3</span>
+                <div class="number-glow"></div>
+              </div>
               <div class="step-content">
                 <h3>Share Access</h3>
                 <p>Share your room ID and PIN with others to give them access to view and download files.</p>
               </div>
+              <div class="step-connector">
+                <div class="connector-line"></div>
+                <div class="connector-pulse"></div>
+              </div>
             </div>
             
-            <div class="step-card">
-              <div class="step-number">4</div>
+            <div class="step-card step-4 floating-card" data-delay="600">
+              <div class="step-background"></div>
+              <div class="step-number">
+                <span>4</span>
+                <div class="number-glow"></div>
+              </div>
               <div class="step-content">
                 <h3>Manage Files</h3>
                 <p>Upload, preview, download, and organize your files. Only room creators can upload and delete files.</p>
@@ -88,36 +153,73 @@
           </div>
         </div>
 
-        <!-- Why Use ArcRoom Section -->
+        <!-- Why Use ArcRoom Section with Morphing Cards -->
         <div class="why-use-section">
-          <div class="section-header">
-            <h2>Why Use ArcRoom?</h2>
-            <p>Discover the benefits of our secure file sharing platform</p>
+          <div class="section-header parallax-element" data-speed="0.3">
+            <h2 class="section-title">Why Use ArcRoom?</h2>
+            <p class="section-subtitle">Discover the benefits of our secure file sharing platform</p>
           </div>
           
           <div class="benefits-grid">
-            <div class="benefit-card">
-              <div class="benefit-icon share-icon"></div>
+            <div class="benefit-card morphing-card floating-card" data-delay="0">
+              <div class="card-background"></div>
+              <div class="benefit-icon share-icon">
+                <div class="icon-glow"></div>
+              </div>
               <div class="benefit-content">
                 <h3>File Sharing Interface</h3>
                 <p>Acts as a simple and secure interface to share files with others. Create rooms with custom access controls and share files instantly.</p>
               </div>
+              <div class="card-shimmer"></div>
             </div>
             
-            <div class="benefit-card">
-              <div class="benefit-icon storage-icon"></div>
+            <div class="benefit-card morphing-card floating-card" data-delay="200">
+              <div class="card-background"></div>
+              <div class="benefit-icon storage-icon">
+                <div class="icon-glow"></div>
+              </div>
               <div class="benefit-content">
                 <h3>File Storage Interface</h3>
                 <p>Acts as a reliable interface to store your files in the cloud. Access your files from anywhere with room-based organization.</p>
               </div>
+              <div class="card-shimmer"></div>
             </div>
             
-            <div class="benefit-card">
-              <div class="benefit-icon simple-icon"></div>
+            <div class="benefit-card morphing-card floating-card" data-delay="400">
+              <div class="card-background"></div>
+              <div class="benefit-icon simple-icon">
+                <div class="icon-glow"></div>
+              </div>
               <div class="benefit-content">
                 <h3>Simple & Fast Access</h3>
                 <p>It's simple and the no-login feature allows faster access for viewers. Anyone with room credentials can access files instantly without creating an account.</p>
               </div>
+              <div class="card-shimmer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA Section with Animated Gradient -->
+        <div class="cta-section">
+          <div class="cta-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+          </div>
+          
+          <div class="cta-content">
+            <h2>Ready to get started?</h2>
+            <p>Create your first secure room today and start sharing files with confidence.</p>
+            
+            <div class="cta-actions">
+              <button class="btn btn-primary btn-cta" onclick="handleCreateRoom()">
+                <span class="btn-text">Create a Room</span>
+                <span class="btn-shine"></span>
+              </button>
+              <button class="btn btn-ghost btn-cta" onclick="document.querySelector('.join-room-card').scrollIntoView({behavior: 'smooth'})">
+                <span class="btn-text">Enter a Room</span>
+                <span class="btn-shine"></span>
+              </button>
             </div>
           </div>
         </div>
@@ -171,6 +273,153 @@
       </div>
     </div>
 
+    <!-- Floating Particles Background -->
+    <div class="particles-container">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
     <script src="app.js"></script>
+    <script>
+      // Parallax Effect
+      window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const parallaxElements = document.querySelectorAll('.parallax-element');
+        
+        parallaxElements.forEach(element => {
+          const speed = element.dataset.speed;
+          const yPos = -(scrolled * speed);
+          element.style.transform = `translateY(${yPos}px)`;
+        });
+
+        // Hero parallax
+        const heroContent = document.querySelector('.hero-content');
+        if (heroContent) {
+          const heroOffset = scrolled * 0.3;
+          heroContent.style.transform = `translateY(${heroOffset}px)`;
+        }
+
+        // Floating shapes parallax
+        const shapes = document.querySelectorAll('.shape');
+        shapes.forEach((shape, index) => {
+          const speed = 0.1 + (index * 0.05);
+          const yPos = scrolled * speed;
+          shape.style.transform = `translateY(${yPos}px) rotate(${scrolled * 0.1}deg)`;
+        });
+      });
+
+      // Floating Cards Animation
+      document.addEventListener('DOMContentLoaded', () => {
+        const floatingCards = document.querySelectorAll('.floating-card');
+        
+        floatingCards.forEach((card, index) => {
+          const delay = card.dataset.delay || index * 100;
+          
+          setTimeout(() => {
+            card.classList.add('animate-in');
+          }, delay);
+          
+          // Add random floating animation
+          const randomDelay = Math.random() * 2000;
+          const randomDuration = 4000 + Math.random() * 2000;
+          
+          setTimeout(() => {
+            card.style.animation = `float ${randomDuration}ms ease-in-out infinite`;
+            card.style.animationDelay = `${randomDelay}ms`;
+          }, delay + 500);
+        });
+
+        // Morphing cards hover effect
+        const morphingCards = document.querySelectorAll('.morphing-card');
+        morphingCards.forEach(card => {
+          card.addEventListener('mouseenter', () => {
+            card.style.transform = 'scale(1.05) rotateY(5deg)';
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = 'scale(1) rotateY(0deg)';
+          });
+        });
+
+        // Step connector animation
+        const stepCards = document.querySelectorAll('.step-card');
+        stepCards.forEach((card, index) => {
+          setTimeout(() => {
+            const pulse = card.querySelector('.connector-pulse');
+            if (pulse) {
+              pulse.style.animationDelay = `${index * 0.5}s`;
+            }
+          }, 1000);
+        });
+      });
+
+      // Intersection Observer for scroll animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            
+            // Trigger step connector animations
+            if (entry.target.classList.contains('step-card')) {
+              const connectorLine = entry.target.querySelector('.connector-line');
+              if (connectorLine) {
+                setTimeout(() => {
+                  connectorLine.style.transform = 'scaleX(1)';
+                }, 500);
+              }
+            }
+          }
+        });
+      }, observerOptions);
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const animatedElements = document.querySelectorAll('.step-card, .benefit-card, .section-header, .hero-content');
+        animatedElements.forEach(el => observer.observe(el));
+      });
+
+      // Mouse movement parallax for hero shapes
+      document.addEventListener('mousemove', (e) => {
+        const shapes = document.querySelectorAll('.shape');
+        const mouseX = e.clientX / window.innerWidth;
+        const mouseY = e.clientY / window.innerHeight;
+        
+        shapes.forEach((shape, index) => {
+          const speed = (index + 1) * 0.02;
+          const x = (mouseX - 0.5) * speed * 100;
+          const y = (mouseY - 0.5) * speed * 100;
+          
+          shape.style.transform += ` translate(${x}px, ${y}px)`;
+        });
+      });
+
+      // Button shine effect
+      const shinyButtons = document.querySelectorAll('.btn');
+      shinyButtons.forEach(button => {
+        button.addEventListener('mouseenter', () => {
+          const shine = button.querySelector('.btn-shine');
+          if (shine) {
+            shine.style.left = '100%';
+          }
+        });
+        
+        button.addEventListener('mouseleave', () => {
+          const shine = button.querySelector('.btn-shine');
+          if (shine) {
+            shine.style.left = '-100%';
+          }
+        });
+      });
+    </script>
   </body>
 </html>
