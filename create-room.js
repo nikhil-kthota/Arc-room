@@ -20,89 +20,76 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 });
 
-// Enhanced Error display functions with better UI
-function showError(message, containerId = null) {
+// Error display functions that show within the form container
+function showError(message, containerId = 'createRoomForm') {
+  // Remove any existing error messages first
+  clearMessages(containerId);
+  
   const errorDiv = document.createElement('div');
-  errorDiv.className = 'error-notification';
+  errorDiv.className = 'error-message';
   errorDiv.innerHTML = `
-    <div class="error-notification-content">
-      <div class="error-notification-icon">
-        <span class="icon-alert-circle"></span>
-      </div>
-      <div class="error-notification-text">
-        <div class="error-notification-title">Error</div>
-        <div class="error-notification-message">${message}</div>
-      </div>
-      <button class="error-notification-close" onclick="this.parentElement.parentElement.remove()">
-        <span class="icon-x"></span>
-      </button>
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      <span class="error-text">${message}</span>
+      <button class="error-close" onclick="this.parentElement.parentElement.remove()">×</button>
     </div>
   `;
   
-  if (containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-      // Remove existing errors
-      const existingErrors = container.querySelectorAll('.error-notification, .error-message');
-      existingErrors.forEach(error => error.remove());
-      
-      // Add new error at the top
-      container.insertBefore(errorDiv, container.firstChild);
-      return;
-    }
+  const container = document.getElementById(containerId);
+  if (container) {
+    // Insert error at the top of the form
+    container.insertBefore(errorDiv, container.firstChild);
+  } else {
+    // Fallback to body if container not found
+    document.body.appendChild(errorDiv);
+    
+    // Auto-remove after 5 seconds for body-level errors
+    setTimeout(() => {
+      if (errorDiv.parentElement) {
+        errorDiv.remove();
+      }
+    }, 5000);
   }
-  
-  // Default: add to body (top-right corner)
-  document.body.appendChild(errorDiv);
-  
-  // Auto-remove after 8 seconds
-  setTimeout(() => {
-    if (errorDiv.parentElement) {
-      errorDiv.remove();
-    }
-  }, 8000);
 }
 
-function showSuccess(message, containerId = null) {
+function showSuccess(message, containerId = 'createRoomForm') {
+  // Remove any existing messages first
+  clearMessages(containerId);
+  
   const successDiv = document.createElement('div');
-  successDiv.className = 'success-notification';
+  successDiv.className = 'success-message';
   successDiv.innerHTML = `
-    <div class="success-notification-content">
-      <div class="success-notification-icon">
-        <span class="icon-check-circle"></span>
-      </div>
-      <div class="success-notification-text">
-        <div class="success-notification-title">Success</div>
-        <div class="success-notification-message">${message}</div>
-      </div>
-      <button class="success-notification-close" onclick="this.parentElement.parentElement.remove()">
-        <span class="icon-x"></span>
-      </button>
+    <div class="success-content">
+      <span class="success-icon">✅</span>
+      <span class="success-text">${message}</span>
+      <button class="success-close" onclick="this.parentElement.parentElement.remove()">×</button>
     </div>
   `;
   
-  if (containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-      // Remove existing messages
-      const existingMessages = container.querySelectorAll('.success-notification, .error-notification, .success-message, .error-message');
-      existingMessages.forEach(msg => msg.remove());
-      
-      // Add new message at the top
-      container.insertBefore(successDiv, container.firstChild);
-      return;
-    }
+  const container = document.getElementById(containerId);
+  if (container) {
+    // Insert success message at the top of the form
+    container.insertBefore(successDiv, container.firstChild);
+  } else {
+    // Fallback to body if container not found
+    document.body.appendChild(successDiv);
+    
+    // Auto-remove after 3 seconds for body-level messages
+    setTimeout(() => {
+      if (successDiv.parentElement) {
+        successDiv.remove();
+      }
+    }, 3000);
   }
-  
-  // Default: add to body (top-right corner)
-  document.body.appendChild(successDiv);
-  
-  // Auto-remove after 5 seconds
-  setTimeout(() => {
-    if (successDiv.parentElement) {
-      successDiv.remove();
-    }
-  }, 5000);
+}
+
+// Helper function to clear existing messages
+function clearMessages(containerId) {
+  const container = document.getElementById(containerId);
+  if (container) {
+    const existingMessages = container.querySelectorAll('.error-message, .success-message');
+    existingMessages.forEach(msg => msg.remove());
+  }
 }
 
 // File upload handling
@@ -141,19 +128,31 @@ function handleFileSelect(event) {
 
 function handleFiles(files) {
   // Validate files
-  const validFiles = files.filter(file => {
+  const validFiles = [];
+  const errors = [];
+  
+  for (const file of files) {
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      showError(`File ${file.name} is too large. Maximum size is 10MB.`);
-      return false;
+      errors.push(`File ${file.name} is too large. Maximum size is 10MB.`);
+      continue;
     }
-    return true;
-  });
-
-  if (selectedFiles.length + validFiles.length > 10) {
-    showError('Maximum 10 files allowed.');
+    
+    if (selectedFiles.length + validFiles.length >= 10) {
+      errors.push(`Maximum 10 files allowed per room`);
+      break;
+    }
+    
+    validFiles.push(file);
+  }
+  
+  if (errors.length > 0) {
+    showError(errors.join(', '));
+  }
+  
+  if (validFiles.length === 0) {
     return;
   }
-
+  
   selectedFiles = [...selectedFiles, ...validFiles];
   updateFileList();
   
@@ -206,6 +205,9 @@ async function handleCreateRoom(e) {
   const roomId = document.getElementById('roomId').value.trim().toLowerCase();
   const roomPin = document.getElementById('roomPin').value.trim();
   const dataAgreement = document.getElementById('dataAgreement').checked;
+
+  // Clear any existing messages
+  clearMessages('createRoomForm');
 
   try {
     // Validate inputs
