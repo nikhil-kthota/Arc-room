@@ -1,4 +1,3 @@
-```js
 // Get room ID from URL
 const urlParams = new URLSearchParams(window.location.search);
 const roomKey = urlParams.get('id');
@@ -451,7 +450,7 @@ async function handleLogout() {
 // Load room data
 async function loadRoom() {
   try {
-    // Get room with files only
+    // Get room with files only (no folders since they don't exist in schema)
     const { data: room, error } = await supabase
       .from('rooms')
       .select(`
@@ -997,13 +996,14 @@ async function deleteFile(fileId) {
   }
 }
 
-// Share functionality - FIXED
+// Share functionality
 function handleShare() {
   const modal = document.getElementById('shareModal');
   const shareUrl = document.getElementById('shareUrl');
+  const shareKey = document.getElementById('shareKey');
   
-  // Set the correct share URL - point to the home page where users can enter room details
-  shareUrl.value = `${window.location.origin}/`;
+  shareUrl.value = `${window.location.origin}/?room=${roomKey}`;
+  shareKey.value = roomKey;
   
   modal.classList.add('active');
 }
@@ -1091,4 +1091,3 @@ window.addEventListener('resize', () => {
     }
   }
 });
-```
