@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -9,10 +10,19 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: 'index.html',
-        createRoom: 'create-room.html',
-        room: 'room.html',
-        profile: 'profile.html'
+        main: resolve(__dirname, 'index.html'),
+        createRoom: resolve(__dirname, 'create-room.html'),
+        room: resolve(__dirname, 'room.html'),
+        profile: resolve(__dirname, 'profile.html'),
+        // Include vanilla JS files
+        app: resolve(__dirname, 'app.js'),
+        createRoomJs: resolve(__dirname, 'create-room.js'),
+        roomJs: resolve(__dirname, 'room.js'),
+        profileJs: resolve(__dirname, 'profile.js'),
+        // Include CSS files
+        styles: resolve(__dirname, 'styles.css'),
+        scrollbar: resolve(__dirname, 'scrollbar.css'),
+        roomLayout: resolve(__dirname, 'room-layout.css')
       },
       output: {
         assetFileNames: (assetInfo) => {
@@ -22,15 +32,20 @@ export default defineConfig({
             return `assets/images/[name]-[hash][extname]`;
           }
           if (/css/i.test(ext)) {
-            return `assets/css/[name]-[hash][extname]`;
+            return `[name][extname]`;
           }
           return `assets/[name]-[hash][extname]`;
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js'
+        entryFileNames: (chunkInfo) => {
+          // Keep vanilla JS files with their original names
+          if (['app', 'createRoomJs', 'roomJs', 'profileJs'].includes(chunkInfo.name)) {
+            return `[name].js`.replace('createRoomJs', 'create-room').replace('roomJs', 'room').replace('profileJs', 'profile');
+          }
+          return `assets/js/[name]-[hash].js`;
+        }
       }
     }
   },
-  publicDir: 'public',
-  assetsInclude: ['**/*.css', '**/*.js']
+  publicDir: 'public'
 })
