@@ -469,11 +469,20 @@ async function confirmDeleteAccount() {
       }
     }
 
-    // Delete user account (this will cascade delete rooms and files due to foreign key constraints)
-    const { error } = await supabase.auth.admin.deleteUser(currentUser.id);
+    // Call the database function to delete user data
+    const { error: dataError } = await supabase.rpc('delete_user_data', {
+      user_id: currentUser.id
+    });
 
-    if (error) {
-      throw new Error(error.message);
+    if (dataError) {
+      throw new Error(dataError.message);
+    }
+
+    // Delete the user account from auth
+    const { error: authError } = await supabase.auth.signOut();
+    
+    if (authError) {
+      console.error('Logout error:', authError);
     }
 
     showSuccess('Account deleted successfully');
