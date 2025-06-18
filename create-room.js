@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const fileList = document.getElementById('fileList');
+const dataDisclaimer = document.getElementById('dataDisclaimer');
 let selectedFiles = [];
 
 // Drag and drop handling
@@ -70,11 +71,17 @@ function handleFiles(files) {
 
   selectedFiles = [...selectedFiles, ...validFiles];
   updateFileList();
+  
+  // Show disclaimer if files are selected
+  if (selectedFiles.length > 0) {
+    dataDisclaimer.style.display = 'block';
+  }
 }
 
 function updateFileList() {
   if (selectedFiles.length === 0) {
     fileList.innerHTML = '';
+    dataDisclaimer.style.display = 'none';
     return;
   }
 
