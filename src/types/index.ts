@@ -1,3 +1,4 @@
+```ts
 export interface Room {
   id: string;
   key: string;
@@ -28,3 +29,4 @@ export interface UserProfile {
   totalFiles: number;
   totalStorage: number;
 }
+```
