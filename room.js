@@ -4,10 +4,7 @@ const roomKey = urlParams.get('id');
 let currentRoom = null;
 let currentUser = null;
 let fileToDelete = null; // Store file info for deletion
-let folderToDelete = null; // Store folder info for deletion
-let currentFolderId = null; // Track current folder for uploads
 let selectedFiles = new Set(); // Track selected files
-let selectedFolders = new Set(); // Track selected folders
 
 // Initialize Supabase
 const SUPABASE_URL = 'https://tscgpbefbtditdmypvfx.supabase.co';
@@ -221,30 +218,6 @@ function confirmDeleteFile() {
   if (fileToDelete) {
     deleteFile(fileToDelete.id);
     hideDeleteModal();
-  }
-}
-
-// Folder Delete Modal Management
-function showDeleteFolderModal(folderId, folderName) {
-  folderToDelete = { id: folderId, name: folderName };
-  
-  const modal = document.getElementById('deleteFolderModal');
-  const folderNameElement = document.getElementById('deleteFolderName');
-  
-  folderNameElement.textContent = folderName;
-  modal.classList.add('active');
-}
-
-function hideDeleteFolderModal() {
-  const modal = document.getElementById('deleteFolderModal');
-  modal.classList.remove('active');
-  folderToDelete = null;
-}
-
-function confirmDeleteFolder() {
-  if (folderToDelete) {
-    deleteFolder(folderToDelete.id);
-    hideDeleteFolderModal();
   }
 }
 
@@ -474,16 +447,15 @@ async function handleLogout() {
   }
 }
 
-// Load room data with folders
+// Load room data
 async function loadRoom() {
   try {
-    // Get room with files and folders
+    // Get room with files only (no folders since they don't exist in schema)
     const { data: room, error } = await supabase
       .from('rooms')
       .select(`
         *,
-        files (*),
-        folders (*)
+        files (*)
       `)
       .eq('key', roomKey)
       .single();
@@ -519,15 +491,7 @@ async function loadRoom() {
         type: file.type,
         size: file.size,
         url: file.url,
-        uploadedAt: new Date(file.uploaded_at),
-        folderId: file.folder_id
-      })),
-      folders: room.folders.map(folder => ({
-        id: folder.id,
-        name: folder.name,
-        parentFolderId: folder.parent_folder_id,
-        createdAt: new Date(folder.created_at),
-        createdBy: folder.created_by
+        uploadedAt: new Date(file.uploaded_at)
       }))
     };
     
@@ -565,7 +529,7 @@ function getDynamicTitleStyle(name) {
   };
 }
 
-// Update UI with room data including folders
+// Update UI with room data
 function updateUI() {
   // Update room name with dynamic sizing
   const roomNameElement = document.getElementById('roomName');
@@ -575,15 +539,15 @@ function updateUI() {
     Object.assign(roomNameElement.style, titleStyle);
   }
   
-  // Update files list with folder structure
+  // Update files list
   const filesList = document.getElementById('filesList');
   
-  if (currentRoom.files.length === 0 && currentRoom.folders.length === 0) {
+  if (currentRoom.files.length === 0) {
     filesList.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon"></div>
-        <h3>No files or folders yet</h3>
-        <p>Upload files or create folders to organize your content</p>
+        <h3>No files yet</h3>
+        <p>Upload files to get started</p>
       </div>
     `;
     return;
@@ -594,31 +558,15 @@ function updateUI() {
   
   let html = '';
   
-  // Add folder actions and selection controls for owners
-  if (isOwner) {
-    html += `
-      <div class="folder-actions">
-        <button class="btn btn-ghost btn-sm" onclick="showCreateFolderModal()">
-          <span class="icon-folder-plus"></span>
-          Create Folder
-        </button>
-      </div>
-    `;
-  }
-  
   // Show selection actions if items are selected
-  const totalSelected = selectedFiles.size + selectedFolders.size;
+  const totalSelected = selectedFiles.size;
   if (totalSelected > 0 && isOwner) {
     html += `
       <div class="selection-actions">
         <div class="selection-info">
-          ${totalSelected} item${totalSelected > 1 ? 's' : ''} selected
+          ${totalSelected} file${totalSelected > 1 ? 's' : ''} selected
         </div>
         <div class="selection-buttons">
-          <button class="btn btn-ghost btn-sm" onclick="showMoveModal()">
-            <span class="icon-move"></span>
-            Move
-          </button>
           <button class="btn btn-danger btn-sm" onclick="deleteSelectedItems()">
             <span class="icon-trash"></span>
             Delete
@@ -631,77 +579,8 @@ function updateUI() {
     `;
   }
   
-  // Render folders first
-  currentRoom.folders.forEach(folder => {
-    const folderFiles = currentRoom.files.filter(file => file.folderId === folder.id);
-    const isSelected = selectedFolders.has(folder.id);
-    
-    html += `
-      <div class="folder-item">
-        <div class="folder-header" onclick="toggleFolder('${folder.id}')">
-          ${isOwner ? `
-            <div class="file-checkbox ${isSelected ? 'checked' : ''}" onclick="event.stopPropagation(); toggleFolderSelection('${folder.id}')">
-              ${isSelected ? '<span class="icon-check"></span>' : ''}
-            </div>
-          ` : ''}
-          <div class="folder-icon"></div>
-          <div class="folder-info">
-            <h3>${folder.name}</h3>
-            <p>${folderFiles.length} files</p>
-          </div>
-          <div class="folder-toggle">
-            <span class="icon-chevron-down" id="chevron-${folder.id}"></span>
-          </div>
-          ${isOwner ? `
-            <div class="folder-actions" onclick="event.stopPropagation()">
-              <button class="btn btn-ghost btn-icon" onclick="setUploadFolder('${folder.id}')" title="Upload to folder">
-                <span class="icon-upload"></span>
-              </button>
-              <button class="btn btn-ghost btn-icon" onclick="showDeleteFolderModal('${folder.id}', '${folder.name}')" title="Delete folder">
-                <span class="icon-trash"></span>
-              </button>
-            </div>
-          ` : ''}
-        </div>
-        <div class="folder-content" id="folder-${folder.id}" style="display: none;">
-          ${folderFiles.map(file => {
-            const isFileSelected = selectedFiles.has(file.id);
-            return `
-              <div class="file-item ${isFileSelected ? 'selected' : ''}" onclick="viewFile('${file.id}')">
-                ${isOwner ? `
-                  <div class="file-checkbox ${isFileSelected ? 'checked' : ''}" onclick="event.stopPropagation(); toggleFileSelection('${file.id}')">
-                    ${isFileSelected ? '<span class="icon-check"></span>' : ''}
-                  </div>
-                ` : ''}
-                <div class="file-icon ${getFileIconClass(file.type)}"></div>
-                <div class="file-info">
-                  <h3>${file.name}</h3>
-                  <p>${formatFileSize(file.size)}</p>
-                </div>
-                <div class="file-actions">
-                  <button class="btn btn-ghost btn-icon" onclick="event.stopPropagation(); openInNewTab('${file.url}')" title="Open in new tab">
-                    <span class="icon-external"></span>
-                  </button>
-                  <button class="btn btn-ghost btn-icon" onclick="event.stopPropagation(); downloadFile('${file.url}', '${file.name}')" title="Download">
-                    <span class="icon-download"></span>
-                  </button>
-                  ${isOwner ? `
-                    <button class="btn btn-ghost btn-icon" onclick="event.stopPropagation(); showDeleteModal('${file.id}', '${file.name}')" title="Delete">
-                      <span class="icon-trash"></span>
-                    </button>
-                  ` : ''}
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  });
-  
-  // Render files not in folders
-  const rootFiles = currentRoom.files.filter(file => !file.folderId);
-  rootFiles.forEach(file => {
+  // Render files
+  currentRoom.files.forEach(file => {
     const isSelected = selectedFiles.has(file.id);
     html += `
       <div class="file-item ${isSelected ? 'selected' : ''}" onclick="viewFile('${file.id}')">
@@ -745,231 +624,24 @@ function toggleFileSelection(fileId) {
   updateUI();
 }
 
-function toggleFolderSelection(folderId) {
-  if (selectedFolders.has(folderId)) {
-    selectedFolders.delete(folderId);
-  } else {
-    selectedFolders.add(folderId);
-  }
-  updateUI();
-}
-
 function clearSelection() {
   selectedFiles.clear();
-  selectedFolders.clear();
   updateUI();
 }
 
 function deleteSelectedItems() {
-  const totalSelected = selectedFiles.size + selectedFolders.size;
+  const totalSelected = selectedFiles.size;
   if (totalSelected === 0) return;
   
-  const confirmMessage = `Are you sure you want to delete ${totalSelected} selected item${totalSelected > 1 ? 's' : ''}?`;
+  const confirmMessage = `Are you sure you want to delete ${totalSelected} selected file${totalSelected > 1 ? 's' : ''}?`;
   if (confirm(confirmMessage)) {
     // Delete selected files
     selectedFiles.forEach(fileId => {
       deleteFile(fileId);
     });
     
-    // Delete selected folders
-    selectedFolders.forEach(folderId => {
-      deleteFolder(folderId);
-    });
-    
     clearSelection();
   }
-}
-
-function showMoveModal() {
-  // Create a simple move modal
-  const modal = document.createElement('div');
-  modal.className = 'modal active';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <h2>Move Items</h2>
-      <p>Move ${selectedFiles.size + selectedFolders.size} selected item(s) to:</p>
-      <div class="form-group">
-        <select id="moveToFolder">
-          <option value="">Root (No folder)</option>
-          ${currentRoom.folders.map(folder => `
-            <option value="${folder.id}">${folder.name}</option>
-          `).join('')}
-        </select>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="this.closest('.modal').remove()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmMove()">Move</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-async function confirmMove() {
-  const targetFolderId = document.getElementById('moveToFolder').value || null;
-  
-  try {
-    // Move selected files
-    for (const fileId of selectedFiles) {
-      const { error } = await supabase
-        .from('files')
-        .update({ folder_id: targetFolderId })
-        .eq('id', fileId);
-      
-      if (error) {
-        console.error('Error moving file:', error);
-        throw error;
-      }
-      
-      // Update local data immediately
-      const file = currentRoom.files.find(f => f.id === fileId);
-      if (file) {
-        file.folderId = targetFolderId;
-      }
-    }
-    
-    // Note: We're not moving folders in this implementation
-    // as it would require more complex logic for nested folders
-    
-    clearSelection();
-    updateUI();
-    showSuccess('Items moved successfully');
-    
-    // Close modal
-    document.querySelector('.modal').remove();
-    
-    // Reload room data to ensure consistency
-    await loadRoom();
-    
-  } catch (err) {
-    console.error('Move error:', err);
-    showError('Failed to move items: ' + err.message);
-  }
-}
-
-// Folder management functions
-function toggleFolder(folderId) {
-  const folderContent = document.getElementById(`folder-${folderId}`);
-  const chevron = document.getElementById(`chevron-${folderId}`);
-  
-  if (folderContent.style.display === 'none') {
-    folderContent.style.display = 'block';
-    chevron.classList.add('rotated');
-  } else {
-    folderContent.style.display = 'none';
-    chevron.classList.remove('rotated');
-  }
-}
-
-function showCreateFolderModal() {
-  const modal = document.getElementById('createFolderModal');
-  modal.classList.add('active');
-  document.getElementById('folderName').focus();
-}
-
-function hideCreateFolderModal() {
-  const modal = document.getElementById('createFolderModal');
-  modal.classList.remove('active');
-  document.getElementById('folderName').value = '';
-}
-
-async function createFolder() {
-  const folderName = document.getElementById('folderName').value.trim();
-  
-  if (!folderName) {
-    showError('Folder name is required');
-    return;
-  }
-  
-  if (!currentUser || currentRoom.created_by !== currentUser.id) {
-    showError('Only the room creator can create folders');
-    return;
-  }
-  
-  try {
-    const { data, error } = await supabase
-      .from('folders')
-      .insert({
-        room_id: currentRoom.id,
-        name: folderName,
-        created_by: currentUser.id
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      throw new Error(error.message);
-    }
-    
-    // Add to current room folders
-    currentRoom.folders.push({
-      id: data.id,
-      name: data.name,
-      parentFolderId: data.parent_folder_id,
-      createdAt: new Date(data.created_at),
-      createdBy: data.created_by
-    });
-    
-    updateUI();
-    hideCreateFolderModal();
-    showSuccess(`Folder "${folderName}" created successfully`);
-    
-  } catch (err) {
-    console.error('Create folder error:', err);
-    showError('Failed to create folder: ' + err.message);
-  }
-}
-
-async function deleteFolder(folderId) {
-  if (!currentUser || currentRoom.created_by !== currentUser.id) {
-    showError('Only the room creator can delete folders');
-    return;
-  }
-  
-  try {
-    // First, move all files in this folder to root (set folder_id to null)
-    const { error: moveError } = await supabase
-      .from('files')
-      .update({ folder_id: null })
-      .eq('folder_id', folderId);
-    
-    if (moveError) {
-      console.error('Error moving files from folder:', moveError);
-      throw new Error('Failed to move files from folder: ' + moveError.message);
-    }
-    
-    // Then delete the folder
-    const { error } = await supabase
-      .from('folders')
-      .delete()
-      .eq('id', folderId);
-    
-    if (error) {
-      throw new Error(error.message);
-    }
-    
-    // Remove from current room folders
-    currentRoom.folders = currentRoom.folders.filter(f => f.id !== folderId);
-    
-    // Move files in this folder to root in local data
-    currentRoom.files.forEach(file => {
-      if (file.folderId === folderId) {
-        file.folderId = null;
-      }
-    });
-    
-    updateUI();
-    showSuccess('Folder deleted successfully');
-    
-  } catch (err) {
-    console.error('Delete folder error:', err);
-    showError('Failed to delete folder: ' + err.message);
-  }
-}
-
-function setUploadFolder(folderId) {
-  currentFolderId = folderId;
-  document.getElementById('fileInput').click();
 }
 
 // File viewer with simplified PDF handling
@@ -1137,7 +809,7 @@ function openInNewTab(url) {
   showSuccess('File opened in new tab');
 }
 
-// File upload with better error handling and folder support
+// File upload with better error handling
 async function handleFileUpload(event) {
   const files = event.target.files;
   if (!files.length) return;
@@ -1217,8 +889,7 @@ async function handleFileUpload(event) {
             name: file.name,
             type: file.type,
             size: file.size,
-            url: publicUrl,
-            folder_id: currentFolderId
+            url: publicUrl
           })
           .select()
           .single();
@@ -1237,8 +908,7 @@ async function handleFileUpload(event) {
           type: fileData.type,
           size: fileData.size,
           url: fileData.url,
-          uploadedAt: new Date(fileData.uploaded_at),
-          folderId: fileData.folder_id
+          uploadedAt: new Date(fileData.uploaded_at)
         });
         
         uploadedCount++;
@@ -1257,9 +927,8 @@ async function handleFileUpload(event) {
     showError('Upload failed: ' + err.message);
   }
   
-  // Reset input and folder selection
+  // Reset input
   event.target.value = '';
-  currentFolderId = null;
 }
 
 // File deletion with better error handling
