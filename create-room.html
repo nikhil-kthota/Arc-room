@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create Room - ArcRoom</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="scrollbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,7 +24,25 @@
         </div>
         
         <div class="auth-buttons" id="authButtons">
-          <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+          <div class="profile-icon-btn" onclick="toggleProfileDropdown()" onmouseenter="showProfileDropdownOnHover()" onmouseleave="hideProfileDropdownOnHover()">
+            <span class="icon-user"></span>
+            <div class="profile-dropdown" id="profileDropdown">
+              <div class="profile-dropdown-header">
+                <div class="profile-dropdown-email" id="userEmail">Loading...</div>
+                <div class="profile-dropdown-label">Signed in as</div>
+              </div>
+              <div class="profile-dropdown-actions">
+                <button class="btn btn-ghost" onclick="window.location.href='profile.html'">
+                  <span class="icon-eye"></span>
+                  View Profile
+                </button>
+                <button class="btn btn-ghost" onclick="handleLogout()">
+                  <span class="icon-logout"></span>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </header>
@@ -175,6 +195,6 @@
       </div>
     </footer>
 
-    <script src="create-room.js" type="module"></script>
+    <script src="create-room.js"></script>
   </body>
 </html>

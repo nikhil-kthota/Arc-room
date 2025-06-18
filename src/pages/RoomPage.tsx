@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/Input';
 import { getRoomByKey, verifyRoomPin, uploadFilesToRoom, deleteFileFromRoom } from '../services/roomService';
 import { Room, FileItem } from '../types';
-import { FileIcon, FolderIcon, Link as LinkIcon, Lock, LogOut, AlertTriangle, User, Download, ExternalLink, Trash2 } from 'lucide-react';
+import { FileIcon, FolderIcon, Link as LinkIcon, Lock, Upload, LogOut, AlertTriangle, User, Download, ExternalLink, Trash2 } from 'lucide-react';
 import { FileViewer } from '../components/FileViewer';
 
 export function RoomPage() {
@@ -116,7 +116,7 @@ export function RoomPage() {
     try {
       setError(null);
       
-      await uploadFilesToRoom(roomKey, files);
+      const newFiles = await uploadFilesToRoom(roomKey, files);
       
       if (room) {
         // Refresh room data to get updated files

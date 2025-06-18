@@ -150,7 +150,7 @@ export const uploadFilesToRoom = async (roomKey: string, files: File[]): Promise
       const filePath = `${roomKey}/${fileName}`;
 
       // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('room-files')
         .upload(filePath, file);
 
