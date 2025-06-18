@@ -103,22 +103,40 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Error display functions
+// Enhanced error and success display functions
 function showError(message, containerId = null) {
+  // Remove existing error messages
+  const existingErrors = document.querySelectorAll('.error-message');
+  existingErrors.forEach(error => error.remove());
+
   const errorDiv = document.createElement('div');
   errorDiv.className = 'error-message';
   errorDiv.innerHTML = `
     <div class="error-content">
-      <span class="error-icon">⚠️</span>
-      <span class="error-text">${message}</span>
-      <button class="error-close" onclick="this.parentElement.parentElement.remove()">×</button>
+      <div class="error-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+      </div>
+      <div class="error-text">
+        <h4>Error</h4>
+        <p>${message}</p>
+      </div>
+      <button class="error-close" onclick="this.parentElement.parentElement.remove()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
   `;
   
   if (containerId) {
     const container = document.getElementById(containerId);
     if (container) {
-      // Remove existing errors
+      // Remove existing errors in container
       const existingErrors = container.querySelectorAll('.error-message');
       existingErrors.forEach(error => error.remove());
       
@@ -128,25 +146,41 @@ function showError(message, containerId = null) {
     }
   }
   
-  // Default: add to body
-  document.body.appendChild(errorDiv);
+  // Default: add to top of page
+  document.body.insertBefore(errorDiv, document.body.firstChild);
   
-  // Auto-remove after 5 seconds
+  // Auto-remove after 8 seconds
   setTimeout(() => {
     if (errorDiv.parentElement) {
       errorDiv.remove();
     }
-  }, 5000);
+  }, 8000);
 }
 
 function showSuccess(message, containerId = null) {
+  // Remove existing success messages
+  const existingSuccess = document.querySelectorAll('.success-message');
+  existingSuccess.forEach(success => success.remove());
+
   const successDiv = document.createElement('div');
   successDiv.className = 'success-message';
   successDiv.innerHTML = `
     <div class="success-content">
-      <span class="success-icon">✅</span>
-      <span class="success-text">${message}</span>
-      <button class="success-close" onclick="this.parentElement.parentElement.remove()">×</button>
+      <div class="success-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20,6 9,17 4,12"></polyline>
+        </svg>
+      </div>
+      <div class="success-text">
+        <h4>Success</h4>
+        <p>${message}</p>
+      </div>
+      <button class="success-close" onclick="this.parentElement.parentElement.remove()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
   `;
   
@@ -163,15 +197,15 @@ function showSuccess(message, containerId = null) {
     }
   }
   
-  // Default: add to body
-  document.body.appendChild(successDiv);
+  // Default: add to top of page
+  document.body.insertBefore(successDiv, document.body.firstChild);
   
-  // Auto-remove after 3 seconds
+  // Auto-remove after 5 seconds
   setTimeout(() => {
     if (successDiv.parentElement) {
       successDiv.remove();
     }
-  }, 3000);
+  }, 5000);
 }
 
 // Modal Management
@@ -432,7 +466,7 @@ async function handleLogout() {
   }
 }
 
-// Room Management
+// Room Management with improved validation
 async function handleJoinRoom(e) {
   e.preventDefault();
   
@@ -447,6 +481,11 @@ async function handleJoinRoom(e) {
   // Validation
   if (!roomKey) {
     showError('Room key is required', 'joinRoomForm');
+    return;
+  }
+  
+  if (roomKey.length < 3) {
+    showError('Room key must be at least 3 characters long', 'joinRoomForm');
     return;
   }
   
@@ -468,6 +507,12 @@ async function handleJoinRoom(e) {
   }
   
   try {
+    // Show loading state
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Joining Room...';
+    submitButton.disabled = true;
+
     // Check if room exists and verify PIN
     const { data: room, error } = await supabase
       .from('rooms')
@@ -507,6 +552,13 @@ async function handleJoinRoom(e) {
   } catch (err) {
     console.error('Join room error:', err);
     showError('An unexpected error occurred. Please try again.', 'joinRoomForm');
+  } finally {
+    // Reset button state
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton) {
+      submitButton.textContent = 'Join Room';
+      submitButton.disabled = false;
+    }
   }
 }
 
