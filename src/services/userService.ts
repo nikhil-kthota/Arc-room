@@ -61,56 +61,35 @@ export const getUserProfile = async (userId: string): Promise<UserProfile> => {
 
 // Delete user account
 export const deleteUserAccount = async (): Promise<void> => {
-  try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      throw new Error('User not found');
-    }
+  // First delete all user's files from storage
+  const { data: rooms } = await supabase
+    .from('rooms')
+    .select('key')
+    .eq('created_by', (await supabase.auth.getUser()).data.user?.id);
 
-    // First, get all user's rooms to delete storage files
-    const { data: rooms } = await supabase
-      .from('rooms')
-      .select('key')
-      .eq('created_by', user.id);
+  if (rooms) {
+    for (const room of rooms) {
+      // Delete all files in the room's storage folder
+      const { data: files } = await supabase.storage
+        .from('room-files')
+        .list(room.key);
 
-    // Delete all files from storage for each room
-    if (rooms && rooms.length > 0) {
-      for (const room of rooms) {
-        try {
-          // List all files in the room's storage folder
-          const { data: files } = await supabase.storage
-            .from('room-files')
-            .list(room.key);
-
-          if (files && files.length > 0) {
-            // Delete all files in the room
-            const filePaths = files.map(file => `${room.key}/${file.name}`);
-            const { error: deleteError } = await supabase.storage
-              .from('room-files')
-              .remove(filePaths);
-            
-            if (deleteError) {
-              console.error(`Error deleting files for room ${room.key}:`, deleteError);
-            }
-          }
-        } catch (error) {
-          console.error(`Error processing room ${room.key}:`, error);
-          // Continue with other rooms even if one fails
-        }
+      if (files && files.length > 0) {
+        const filePaths = files.map(file => `${room.key}/${file.name}`);
+        await supabase.storage
+          .from('room-files')
+          .remove(filePaths);
       }
     }
+  }
 
-    // Call the database function to delete user account and all associated data
-    const { error: functionError } = await supabase.rpc('delete_user_account');
-    
-    if (functionError) {
-      throw new Error(`Failed to delete account: ${functionError.message}`);
-    }
+  // Delete user account (this will cascade delete rooms and files due to foreign key constraints)
+  const { error } = await supabase.auth.admin.deleteUser(
+    (await supabase.auth.getUser()).data.user?.id!
+  );
 
-  } catch (error) {
-    console.error('Delete account error:', error);
-    throw error;
+  if (error) {
+    throw new Error(error.message);
   }
 };
 

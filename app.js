@@ -103,22 +103,15 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Enhanced Error display functions with better UI
+// Error display functions
 function showError(message, containerId = null) {
   const errorDiv = document.createElement('div');
-  errorDiv.className = 'error-notification';
+  errorDiv.className = 'error-message';
   errorDiv.innerHTML = `
-    <div class="error-notification-content">
-      <div class="error-notification-icon">
-        <span class="icon-alert-circle"></span>
-      </div>
-      <div class="error-notification-text">
-        <div class="error-notification-title">Error</div>
-        <div class="error-notification-message">${message}</div>
-      </div>
-      <button class="error-notification-close" onclick="this.parentElement.parentElement.remove()">
-        <span class="icon-x"></span>
-      </button>
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      <span class="error-text">${message}</span>
+      <button class="error-close" onclick="this.parentElement.parentElement.remove()">×</button>
     </div>
   `;
   
@@ -126,7 +119,7 @@ function showError(message, containerId = null) {
     const container = document.getElementById(containerId);
     if (container) {
       // Remove existing errors
-      const existingErrors = container.querySelectorAll('.error-notification, .error-message');
+      const existingErrors = container.querySelectorAll('.error-message');
       existingErrors.forEach(error => error.remove());
       
       // Add new error at the top
@@ -135,32 +128,25 @@ function showError(message, containerId = null) {
     }
   }
   
-  // Default: add to body (top-right corner)
+  // Default: add to body
   document.body.appendChild(errorDiv);
   
-  // Auto-remove after 8 seconds
+  // Auto-remove after 5 seconds
   setTimeout(() => {
     if (errorDiv.parentElement) {
       errorDiv.remove();
     }
-  }, 8000);
+  }, 5000);
 }
 
 function showSuccess(message, containerId = null) {
   const successDiv = document.createElement('div');
-  successDiv.className = 'success-notification';
+  successDiv.className = 'success-message';
   successDiv.innerHTML = `
-    <div class="success-notification-content">
-      <div class="success-notification-icon">
-        <span class="icon-check-circle"></span>
-      </div>
-      <div class="success-notification-text">
-        <div class="success-notification-title">Success</div>
-        <div class="success-notification-message">${message}</div>
-      </div>
-      <button class="success-notification-close" onclick="this.parentElement.parentElement.remove()">
-        <span class="icon-x"></span>
-      </button>
+    <div class="success-content">
+      <span class="success-icon">✅</span>
+      <span class="success-text">${message}</span>
+      <button class="success-close" onclick="this.parentElement.parentElement.remove()">×</button>
     </div>
   `;
   
@@ -168,7 +154,7 @@ function showSuccess(message, containerId = null) {
     const container = document.getElementById(containerId);
     if (container) {
       // Remove existing messages
-      const existingMessages = container.querySelectorAll('.success-notification, .error-notification, .success-message, .error-message');
+      const existingMessages = container.querySelectorAll('.success-message, .error-message');
       existingMessages.forEach(msg => msg.remove());
       
       // Add new message at the top
@@ -177,15 +163,15 @@ function showSuccess(message, containerId = null) {
     }
   }
   
-  // Default: add to body (top-right corner)
+  // Default: add to body
   document.body.appendChild(successDiv);
   
-  // Auto-remove after 5 seconds
+  // Auto-remove after 3 seconds
   setTimeout(() => {
     if (successDiv.parentElement) {
       successDiv.remove();
     }
-  }, 5000);
+  }, 3000);
 }
 
 // Modal Management
@@ -195,7 +181,7 @@ function showLoginModal() {
   document.getElementById('loginEmail').focus();
   
   // Clear any previous errors
-  const existingErrors = modal.querySelectorAll('.error-notification, .error-message');
+  const existingErrors = modal.querySelectorAll('.error-message');
   existingErrors.forEach(error => error.remove());
 }
 
@@ -205,7 +191,7 @@ function showRegisterModal() {
   document.getElementById('registerEmail').focus();
   
   // Clear any previous errors
-  const existingErrors = modal.querySelectorAll('.error-notification, .error-message');
+  const existingErrors = modal.querySelectorAll('.error-message');
   existingErrors.forEach(error => error.remove());
 }
 
@@ -213,7 +199,7 @@ function hideModals() {
   document.querySelectorAll('.modal').forEach(modal => {
     modal.classList.remove('active');
     // Clear errors when closing modals
-    const errors = modal.querySelectorAll('.error-notification, .success-notification, .error-message, .success-message');
+    const errors = modal.querySelectorAll('.error-message, .success-message');
     errors.forEach(error => error.remove());
   });
 }
@@ -243,7 +229,7 @@ async function handleLogin(e) {
   const modal = document.getElementById('loginModal');
   
   // Clear previous errors
-  const existingErrors = modal.querySelectorAll('.error-notification, .error-message');
+  const existingErrors = modal.querySelectorAll('.error-message');
   existingErrors.forEach(error => error.remove());
   
   // Validation
@@ -325,7 +311,7 @@ async function handleRegister(e) {
   const modal = document.getElementById('registerModal');
   
   // Clear previous errors
-  const existingErrors = modal.querySelectorAll('.error-notification, .error-message');
+  const existingErrors = modal.querySelectorAll('.error-message');
   existingErrors.forEach(error => error.remove());
   
   // Validation
@@ -455,7 +441,7 @@ async function handleJoinRoom(e) {
   const form = e.target;
   
   // Clear previous errors
-  const existingErrors = form.querySelectorAll('.error-notification, .error-message');
+  const existingErrors = form.querySelectorAll('.error-message');
   existingErrors.forEach(error => error.remove());
   
   // Validation

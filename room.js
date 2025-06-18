@@ -996,21 +996,14 @@ async function deleteFile(fileId) {
   }
 }
 
-// Share functionality - FIXED with dynamic room ID and PIN
+// Share functionality
 function handleShare() {
   const modal = document.getElementById('shareModal');
   const shareUrl = document.getElementById('shareUrl');
-  const shareRoomKey = document.getElementById('shareRoomKey');
-  const shareRoomPin = document.getElementById('shareRoomPin');
+  const shareKey = document.getElementById('shareKey');
   
-  // Set the share URL to point to the home page
-  shareUrl.value = `${window.location.origin}/`;
-  
-  // Set dynamic room information
-  if (currentRoom) {
-    shareRoomKey.textContent = currentRoom.key;
-    shareRoomPin.textContent = savedPin; // Show the actual PIN
-  }
+  shareUrl.value = `${window.location.origin}/?room=${roomKey}`;
+  shareKey.value = roomKey;
   
   modal.classList.add('active');
 }

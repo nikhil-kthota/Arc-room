@@ -20,91 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 });
 
-// Enhanced Error display functions with better UI
-function showError(message, containerId = null) {
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'error-notification';
-  errorDiv.innerHTML = `
-    <div class="error-notification-content">
-      <div class="error-notification-icon">
-        <span class="icon-alert-circle"></span>
-      </div>
-      <div class="error-notification-text">
-        <div class="error-notification-title">Error</div>
-        <div class="error-notification-message">${message}</div>
-      </div>
-      <button class="error-notification-close" onclick="this.parentElement.parentElement.remove()">
-        <span class="icon-x"></span>
-      </button>
-    </div>
-  `;
-  
-  if (containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-      // Remove existing errors
-      const existingErrors = container.querySelectorAll('.error-notification, .error-message');
-      existingErrors.forEach(error => error.remove());
-      
-      // Add new error at the top
-      container.insertBefore(errorDiv, container.firstChild);
-      return;
-    }
-  }
-  
-  // Default: add to body (top-right corner)
-  document.body.appendChild(errorDiv);
-  
-  // Auto-remove after 8 seconds
-  setTimeout(() => {
-    if (errorDiv.parentElement) {
-      errorDiv.remove();
-    }
-  }, 8000);
-}
-
-function showSuccess(message, containerId = null) {
-  const successDiv = document.createElement('div');
-  successDiv.className = 'success-notification';
-  successDiv.innerHTML = `
-    <div class="success-notification-content">
-      <div class="success-notification-icon">
-        <span class="icon-check-circle"></span>
-      </div>
-      <div class="success-notification-text">
-        <div class="success-notification-title">Success</div>
-        <div class="success-notification-message">${message}</div>
-      </div>
-      <button class="success-notification-close" onclick="this.parentElement.parentElement.remove()">
-        <span class="icon-x"></span>
-      </button>
-    </div>
-  `;
-  
-  if (containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-      // Remove existing messages
-      const existingMessages = container.querySelectorAll('.success-notification, .error-notification, .success-message, .error-message');
-      existingMessages.forEach(msg => msg.remove());
-      
-      // Add new message at the top
-      container.insertBefore(successDiv, container.firstChild);
-      return;
-    }
-  }
-  
-  // Default: add to body (top-right corner)
-  document.body.appendChild(successDiv);
-  
-  // Auto-remove after 5 seconds
-  setTimeout(() => {
-    if (successDiv.parentElement) {
-      successDiv.remove();
-    }
-  }, 5000);
-}
-
 // File upload handling
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
@@ -143,14 +58,14 @@ function handleFiles(files) {
   // Validate files
   const validFiles = files.filter(file => {
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      showError(`File ${file.name} is too large. Maximum size is 10MB.`);
+      alert(`File ${file.name} is too large. Maximum size is 10MB.`);
       return false;
     }
     return true;
   });
 
   if (selectedFiles.length + validFiles.length > 10) {
-    showError('Maximum 10 files allowed.');
+    alert('Maximum 10 files allowed.');
     return;
   }
 
@@ -198,40 +113,40 @@ function removeFile(index) {
   updateFileList();
 }
 
-// Room creation with enhanced error handling
+// Room creation
 async function handleCreateRoom(e) {
   e.preventDefault();
 
-  const roomName = document.getElementById('roomName').value.trim();
-  const roomId = document.getElementById('roomId').value.trim().toLowerCase();
-  const roomPin = document.getElementById('roomPin').value.trim();
+  const roomName = document.getElementById('roomName').value;
+  const roomId = document.getElementById('roomId').value.toLowerCase();
+  const roomPin = document.getElementById('roomPin').value;
   const dataAgreement = document.getElementById('dataAgreement').checked;
 
   try {
     // Validate inputs
-    if (!roomName) {
-      showError('Room name is required');
+    if (!roomName.trim()) {
+      alert('Room name is required');
       return;
     }
 
-    if (!roomId) {
-      showError('Room ID is required');
+    if (!roomId.trim()) {
+      alert('Room ID is required');
       return;
     }
 
     if (!/^[a-zA-Z0-9-]+$/.test(roomId)) {
-      showError('Room ID can only contain letters, numbers, and hyphens');
+      alert('Room ID can only contain letters, numbers, and hyphens');
       return;
     }
 
     if (!/^\d{4}$/.test(roomPin)) {
-      showError('PIN must be exactly 4 digits');
+      alert('PIN must be exactly 4 digits');
       return;
     }
 
     // Check data agreement if files are selected
     if (selectedFiles.length > 0 && !dataAgreement) {
-      showError('Please agree to the data storage terms before uploading files');
+      alert('Please agree to the data storage terms before uploading files');
       return;
     }
 
@@ -243,7 +158,7 @@ async function handleCreateRoom(e) {
       .single();
 
     if (existingRoom) {
-      showError('Room ID already exists. Please choose a different one.');
+      alert('Room key already exists. Please choose a different one.');
       return;
     }
 
@@ -260,18 +175,7 @@ async function handleCreateRoom(e) {
       .single();
 
     if (error) {
-      // Handle specific database errors
-      if (error.code === '23505') {
-        // Unique constraint violation
-        if (error.message.includes('rooms_key_key')) {
-          showError('Room ID already exists. Please choose a different one.');
-        } else {
-          showError('A room with these details already exists. Please try different values.');
-        }
-      } else {
-        showError(`Failed to create room: ${error.message}`);
-      }
-      return;
+      throw new Error(error.message);
     }
 
     // Upload files if any
@@ -290,8 +194,7 @@ async function handleCreateRoom(e) {
 
           if (uploadError) {
             console.error('Upload error:', uploadError);
-            showError(`Failed to upload ${file.name}: ${uploadError.message}`);
-            continue;
+            throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
           }
 
           // Get public URL
@@ -313,12 +216,11 @@ async function handleCreateRoom(e) {
           if (fileError) {
             // Clean up uploaded file if database insert fails
             await supabase.storage.from('room-files').remove([filePath]);
-            showError(`Failed to save file metadata: ${fileError.message}`);
-            continue;
+            throw new Error(`Failed to save file metadata: ${fileError.message}`);
           }
         } catch (error) {
           console.error(`Error uploading file ${file.name}:`, error);
-          showError(`Failed to upload ${file.name}: ${error.message}`);
+          alert(`Failed to upload ${file.name}: ${error.message}`);
         }
       }
     }
@@ -326,16 +228,11 @@ async function handleCreateRoom(e) {
     // Store PIN in session storage
     sessionStorage.setItem(`room_pin_${room.key}`, roomPin);
 
-    // Show success message
-    showSuccess('Room created successfully! Redirecting...');
-
-    // Redirect to room after a short delay
-    setTimeout(() => {
-      window.location.href = `room.html?id=${room.key}`;
-    }, 1500);
+    // Redirect to room
+    window.location.href = `room.html?id=${room.key}`;
   } catch (err) {
     console.error('Create room error:', err);
-    showError(err.message || 'Failed to create room');
+    alert(err.message || 'Failed to create room');
   }
 }
 

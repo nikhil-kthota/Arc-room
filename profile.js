@@ -457,25 +457,20 @@ async function confirmDeleteAccount() {
   try {
     // First delete all user's files from storage
     for (const room of userRooms) {
-      try {
-        const { data: files } = await supabase.storage
-          .from('room-files')
-          .list(room.key);
+      const { data: files } = await supabase.storage
+        .from('room-files')
+        .list(room.key);
 
-        if (files && files.length > 0) {
-          const filePaths = files.map(file => `${room.key}/${file.name}`);
-          await supabase.storage
-            .from('room-files')
-            .remove(filePaths);
-        }
-      } catch (error) {
-        console.error(`Error deleting files for room ${room.key}:`, error);
-        // Continue with other rooms even if one fails
+      if (files && files.length > 0) {
+        const filePaths = files.map(file => `${room.key}/${file.name}`);
+        await supabase.storage
+          .from('room-files')
+          .remove(filePaths);
       }
     }
 
-    // Call the database function to delete user account
-    const { error } = await supabase.rpc('delete_user_account');
+    // Delete user account (this will cascade delete rooms and files due to foreign key constraints)
+    const { error } = await supabase.auth.admin.deleteUser(currentUser.id);
 
     if (error) {
       throw new Error(error.message);
@@ -483,7 +478,7 @@ async function confirmDeleteAccount() {
 
     showSuccess('Account deleted successfully');
     
-    // Clear session and redirect to home page after a short delay
+    // Redirect to home page after a short delay
     setTimeout(() => {
       window.location.href = '/';
     }, 2000);
