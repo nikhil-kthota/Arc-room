@@ -463,28 +463,24 @@ main {
 }
 
 .steps-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.step-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
 .step-card-horizontal {
-  flex: 1;
   background-color: var(--primary-800);
   border: 1px solid var(--silver-800);
   border-radius: 1rem;
   padding: 2rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  text-align: center;
+  gap: 1.5rem;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  height: 100%;
 }
 
 .step-card-horizontal:hover {
@@ -523,19 +519,6 @@ main {
   font-size: 1rem;
   color: var(--silver-400);
   line-height: 1.6;
-}
-
-.step-arrow {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.step-arrow:hover {
-  opacity: 1;
 }
 
 /* Why Use Section */
@@ -1259,10 +1242,6 @@ a:hover {
   .room-title {
     font-size: 1rem !important;
   }
-  
-  .step-arrow {
-    display: none;
-  }
 }
 
 @media (max-width: 768px) {
@@ -1325,16 +1304,8 @@ a:hover {
     grid-template-columns: 1fr;
   }
   
-  .step-card-horizontal {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-  
-  .step-number {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.25rem;
+  .steps-container {
+    grid-template-columns: 1fr;
   }
 }
 
