@@ -298,26 +298,26 @@ a:hover {
   width: 100%;
 }
 
-/* Icons */
-.icon-plus::before { content: '➕'; }
-.icon-eye::before { content: '👁️'; }
-.icon-logout::before { content: '🚪'; }
-.icon-trash::before { content: '🗑️'; }
-.icon-trash-large::before { content: '🗑️'; font-size: 2rem; }
-.icon-external::before { content: '🔗'; }
-.icon-download::before { content: '⬇️'; }
-.icon-check::before { content: '✅'; }
-.icon-alert-circle::before { content: '⚠️'; }
-.icon-check-circle::before { content: '✅'; }
-.icon-x::before { content: '✖️'; }
+/* Icons - Monochrome */
+.icon-plus::before { content: '➕'; filter: grayscale(1); }
+.icon-eye::before { content: '👁️'; filter: grayscale(1); }
+.icon-logout::before { content: '🚪'; filter: grayscale(1); }
+.icon-trash::before { content: '🗑️'; filter: grayscale(1); }
+.icon-trash-large::before { content: '🗑️'; font-size: 2rem; filter: grayscale(1); }
+.icon-external::before { content: '🔗'; filter: grayscale(1); }
+.icon-download::before { content: '⬇️'; filter: grayscale(1); }
+.icon-check::before { content: '✅'; filter: grayscale(1); }
+.icon-alert-circle::before { content: '⚠️'; filter: grayscale(1); }
+.icon-check-circle::before { content: '✅'; filter: grayscale(1); }
+.icon-x::before { content: '✖️'; filter: grayscale(1); }
 
-/* File Icons */
-.icon-file::before { content: '📄'; }
-.icon-image::before { content: '🖼️'; }
-.icon-pdf::before { content: '📕'; }
-.icon-document::before { content: '📝'; }
-.icon-spreadsheet::before { content: '📊'; }
-.icon-presentation::before { content: '📊'; }
+/* File Icons - Monochrome */
+.icon-file::before { content: '📄'; filter: grayscale(1); }
+.icon-image::before { content: '🖼️'; filter: grayscale(1); }
+.icon-pdf::before { content: '📕'; filter: grayscale(1); }
+.icon-document::before { content: '📝'; filter: grayscale(1); }
+.icon-spreadsheet::before { content: '📊'; filter: grayscale(1); }
+.icon-presentation::before { content: '📊'; filter: grayscale(1); }
 
 /* Forms */
 .form-group {
@@ -578,6 +578,7 @@ a:hover {
 
 .empty-icon::before {
   content: '📁';
+  filter: grayscale(1);
 }
 
 .empty-state h3 {
@@ -938,6 +939,7 @@ a:hover {
 
 .announcement-icon::before {
   content: '🚀';
+  filter: grayscale(1);
 }
 
 .announcement-content h3 {
@@ -1086,9 +1088,9 @@ a:hover {
   font-size: 2rem;
 }
 
-.share-icon::before { content: '🔗'; }
-.storage-icon::before { content: '☁️'; }
-.simple-icon::before { content: '⚡'; }
+.share-icon::before { content: '🔗'; filter: grayscale(1); }
+.storage-icon::before { content: '☁️'; filter: grayscale(1); }
+.simple-icon::before { content: '⚡'; filter: grayscale(1); }
 
 .benefit-content h3 {
   color: var(--silver-900);
