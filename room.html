@@ -114,7 +114,7 @@
         <h3>Share Room</h3>
         
         <div class="share-info">
-          <p>Share this URL along with the room key and PIN:</p>
+          <p>Share this URL for easy access:</p>
           <div class="copy-input">
             <input
               type="text"
@@ -129,6 +129,23 @@
               Copy
             </button>
           </div>
+        </div>
+        
+        <div class="share-details">
+          <h4>Room Access Information</h4>
+          <div class="room-info-grid">
+            <div class="room-info-item">
+              <label>Room Key:</label>
+              <span class="room-key-display" id="shareRoomKey">Loading...</span>
+            </div>
+            <div class="room-info-item">
+              <label>PIN:</label>
+              <span class="room-pin-display" id="shareRoomPin">••••</span>
+            </div>
+          </div>
+          <p class="share-instructions">
+            Share the URL above along with the room key and PIN. Users can enter these details on the home page to access the room.
+          </p>
         </div>
         
         <div class="modal-actions">
