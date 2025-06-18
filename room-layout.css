@@ -17,7 +17,7 @@
 /* This is to ensure they look like distinct cards */
 .file-list,
 .file-viewer {
-  background-color: var(--silver-800, #374161); /* Using a slightly darker grey */
+  background-color: var(--silver-800, #1a1a1a); /* Using a slightly darker grey */
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   padding: 1.5rem; /* Add some internal padding */
