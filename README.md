@@ -13,11 +13,12 @@ A secure file storage and sharing platform with room-based organization and PIN 
 
 ## Tech Stack
 
-- **Frontend**: Vanilla HTML, CSS, JavaScript
+- **Frontend**: React 18 + TypeScript
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Styling**: Custom CSS with black-silver theme
-- **Icons**: Custom icon system
+- **Styling**: Tailwind CSS with custom black-silver theme
+- **Icons**: Lucide React
 - **Build Tool**: Vite
+- **Routing**: React Router DOM
 
 ## Getting Started
 
@@ -70,22 +71,46 @@ The built files will be in the `dist` directory.
 
 ```
 arcroom/
-├── index.html              # Home page
-├── create-room.html         # Create room page
-├── room.html               # Room view page
-├── profile.html            # User profile page
-├── app.js                  # Main application logic
-├── create-room.js          # Create room functionality
-├── room.js                 # Room view functionality
-├── profile.js              # Profile page functionality
-├── styles.css              # Main styles
-├── scrollbar.css           # Custom scrollbar styles
-├── room-layout.css         # Room-specific layout styles
+├── src/
+│   ├── components/         # React components
+│   │   ├── ui/            # Reusable UI components
+│   │   ├── FileUpload.tsx # File upload component
+│   │   ├── FileViewer.tsx # File viewer component
+│   │   ├── Header.tsx     # Navigation header
+│   │   ├── Footer.tsx     # Page footer
+│   │   └── Layout.tsx     # Main layout wrapper
+│   ├── pages/             # Page components
+│   │   ├── HomePage.tsx   # Landing page
+│   │   ├── LoginPage.tsx  # User login
+│   │   ├── RegisterPage.tsx # User registration
+│   │   ├── CreateRoomPage.tsx # Create new room
+│   │   ├── RoomPage.tsx   # Room view and file management
+│   │   ├── ProfilePage.tsx # User profile
+│   │   └── EnterRoomPage.tsx # Room access
+│   ├── contexts/          # React contexts
+│   │   └── AuthContext.tsx # Authentication context
+│   ├── services/          # API services
+│   │   ├── authService.ts # Authentication logic
+│   │   ├── roomService.ts # Room management
+│   │   └── userService.ts # User operations
+│   ├── types/             # TypeScript type definitions
+│   │   └── index.ts       # Shared types
+│   ├── utils/             # Utility functions
+│   │   └── cn.ts          # Class name utilities
+│   ├── lib/               # External library configurations
+│   │   └── supabase.ts    # Supabase client setup
+│   ├── App.tsx            # Main app component
+│   ├── main.tsx           # App entry point
+│   └── index.css          # Global styles
 ├── supabase/
-│   └── migrations/         # Database migrations
+│   └── migrations/        # Database migrations
 ├── public/
-│   └── favicon.ico         # Favicon
-└── package.json            # Dependencies and scripts
+│   └── favicon.svg        # App favicon
+├── index.html             # HTML template
+├── package.json           # Dependencies and scripts
+├── tsconfig.json          # TypeScript configuration
+├── tailwind.config.js     # Tailwind CSS configuration
+└── vite.config.ts         # Vite configuration
 ```
 
 ## Deployment
